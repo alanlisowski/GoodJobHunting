@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<meta charset="utf-8">
+{#
+  Data: lang (pl|en), name, headline, contact (lines, each a list of items), about,
+  skills (label: value), projects / experience / education (entries: title, right, text or bullets),
+  certificates, languages. Every section but name is optional.
+#}
+{% set h = {
+  "pl": {"about": "O mnie", "skills": "Umiejętności", "projects": "Projekty", "experience": "Doświadczenie",
+         "education": "Edukacja i certyfikaty", "languages": "Języki obce",
+         "consent": "Wyrażam zgodę na przetwarzanie moich danych osobowych w celu prowadzenia rekrutacji na stanowisko, na które aplikuję, zgodnie z Rozporządzeniem Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. (RODO)."},
+  "en": {"about": "About me", "skills": "Skills", "projects": "Projects", "experience": "Experience",
+         "education": "Education and certificates", "languages": "Languages",
+         "consent": "I hereby consent to the processing of my personal data for the purposes of the recruitment process for the position I am applying for, in accordance with Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 (GDPR)."},
+}[lang] %}
+<style>
+  {# One full font file per weight, not latin/latin-ext subsets: split fonts make PDF text
+     extract as "ż arówka", which is what an ATS would read. #}
+  {% for w, f in ((400, "Lato-Regular"), (700, "Lato-Bold")) %}
+  @font-face { font-family: Lato; font-weight: {{ w }};
+    src: url(data:font/woff2;base64,{{ fonts[f] }}) format("woff2"); }
+  {% endfor %}
+  @page { size: A4; margin: 10mm 13mm; }
+  body { margin: 0; font: 8.2pt/1.36 Lato; color: #222; }
+  h1 { margin: 0; font-size: 22pt; line-height: 1.1; }
+  h2 { margin: 7pt 0 3pt; padding-bottom: 1pt; border-bottom: 1px solid #b9c8d8;
+       color: #2d5d8b; font-size: 9.6pt; letter-spacing: .08em; text-transform: uppercase; }
+  p, ul { margin: 0 0 2pt; }
+  ul { padding-left: 12pt; }
+  .headline { color: #2d5d8b; font-size: 11pt; }
+  .muted { color: #555; }
+  .skills { display: grid; grid-template-columns: 32mm 1fr; }
+  .skills dt { font-weight: 700; }
+  .skills dd { margin: 0; }
+  .head { display: flex; justify-content: space-between; gap: 8pt; font-weight: 700; margin-top: 3pt; }
+  .head span { font-weight: 400; color: #555; white-space: nowrap; }
+  .consent { margin-top: 6pt; font-size: 6.5pt; color: #888; }
+</style>
+
+<h1>{{ name }}</h1>
+{% if headline %}<div class="headline">{{ headline }}</div>{% endif %}
+{% for line in contact or [] %}<div class="muted">{{ line | join("  |  ") }}</div>{% endfor %}
+
+{% if about %}<h2>{{ h.about }}</h2><p>{{ about }}</p>{% endif %}
+
+{% if skills %}
+<h2>{{ h.skills }}</h2>
+<dl class="skills">{% for k, v in skills.items() %}<dt>{{ k }}:</dt><dd>{{ v }}</dd>{% endfor %}</dl>
+{% endif %}
+
+{% macro entries(title, items) %}{% if items %}
+<h2>{{ title }}</h2>
+{% for e in items %}
+<div class="head">{{ e.title }}<span>{{ e.right }}</span></div>
+{% if e.text %}<p>{{ e.text }}</p>{% endif %}
+{% if e.bullets %}<ul>{% for b in e.bullets %}<li>{{ b }}</li>{% endfor %}</ul>{% endif %}
+{% endfor %}
+{% endif %}{% endmacro %}
+{{ entries(h.projects, projects) }}
+{{ entries(h.experience, experience) }}
+{{ entries(h.education, education) }}
+{% if certificates %}<p>{{ certificates }}</p>{% endif %}
+
+{% if languages %}<h2>{{ h.languages }}</h2><p>{{ languages }}</p>{% endif %}
+
+<p class="consent">{{ h.consent }}</p>
+</html>

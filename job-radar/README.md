@@ -8,4 +8,5 @@ uv run playwright install chromium
 cp .env.example .env   # fill in
 uv run python -m app.main   # http://127.0.0.1:8000/health
 uv run pytest
+uv run python -m app.render cv_pl.yaml output/cv_pl.pdf   # CV data (gitignored) -> one A4 page
 ```
