@@ -1,3 +1,5 @@
+import shutil
+from pathlib import Path
 from types import SimpleNamespace
 
 from anthropic.types import Usage
@@ -8,6 +10,7 @@ from sqlmodel.pool import StaticPool
 from app import main, models
 from app.scoring import Score
 
+EXAMPLE = Path(__file__).parents[1] / "profile.example.yaml"
 TEXT = "Junior Python Developer at Acme. FastAPI, SQL, remote. " * 2
 
 
@@ -17,7 +20,7 @@ def test_paste_score_list(monkeypatch, tmp_path):
     SQLModel.metadata.create_all(engine)
     monkeypatch.setattr(models, "engine", engine)
     monkeypatch.chdir(tmp_path)
-    (tmp_path / "profile.yaml").write_text("name: Test", encoding="utf-8")
+    shutil.copy(EXAMPLE, tmp_path / "profile.yaml")
     scores = iter([40, 90])
 
     def fake_score(posting, profile, client):

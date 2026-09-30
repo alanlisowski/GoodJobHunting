@@ -1,14 +1,13 @@
-import hashlib
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 import anthropic
 import uvicorn
+import yaml
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from sqlmodel import Session, SQLModel, col, select
 
-from app import models
+from app import models, profile
 from app.models import Posting
 from app.scoring import MODEL, score
 from app.settings import settings
@@ -16,6 +15,7 @@ from app.settings import settings
 
 @asynccontextmanager
 async def lifespan(_):
+    profile.load()  # fail at boot on a missing or invalid profile.yaml
     SQLModel.metadata.create_all(models.engine)  # ponytail: no migrations; add Alembic on the first schema change with data worth keeping
     yield
 
@@ -33,13 +33,25 @@ def health():
     return {"status": "ok"}
 
 
+def current_profile():
+    try:
+        return profile.load()  # per request: edits apply at once
+    except (OSError, ValidationError, yaml.YAMLError) as e:
+        raise HTTPException(500, f"profile.yaml invalid: {e}") from e
+
+
+@app.get("/profile")
+def get_profile() -> profile.Profile:
+    return current_profile()[0]
+
+
 # JSON body on purpose: FastAPI rejects non-JSON content types, so a random
 # website can't fire a no-preflight form POST here and spend API credit.
 @app.post("/postings", status_code=201)
 def create_posting(p: PostingIn) -> Posting:
-    profile = Path("profile.yaml").read_text(encoding="utf-8")  # per request: edits apply at once
+    _, text, profile_hash = current_profile()
     try:
-        s, r = score(p.text, profile, client)
+        s, r = score(p.text, text, client)
     except (ValueError, RuntimeError, anthropic.APIError) as e:
         raise HTTPException(502, f"scoring failed: {e}") from e
     posting = Posting(
@@ -51,7 +63,7 @@ def create_posting(p: PostingIn) -> Posting:
         result=s.model_dump(),
         usage=r.usage.model_dump(),
         model=MODEL,
-        profile_hash=hashlib.sha256(profile.encode()).hexdigest(),
+        profile_hash=profile_hash,
     )
     with Session(models.engine) as db:
         db.add(posting)
