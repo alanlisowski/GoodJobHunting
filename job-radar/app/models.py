@@ -19,7 +19,8 @@ class Posting(SQLModel, table=True):
     score: int = Field(index=True)
     verdict: str
     result: dict = Field(sa_column=Column(JSON))  # full Score: met / missing / dealbreakers
-    usage: dict = Field(sa_column=Column(JSON))  # token counts, for the cost total later
+    usage: dict = Field(sa_column=Column(JSON))  # token counts, summed by GET /usage
+    raw: str  # full model response, to debug a bad score
     model: str
     profile_hash: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
