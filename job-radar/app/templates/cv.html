@@ -15,12 +15,7 @@
          "consent": "I hereby consent to the processing of my personal data for the purposes of the recruitment process for the position I am applying for, in accordance with Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 (GDPR)."},
 }[lang] %}
 <style>
-  {# One full font file per weight, not latin/latin-ext subsets: split fonts make PDF text
-     extract as "ż arówka", which is what an ATS would read. #}
-  {% for w, f in ((400, "Lato-Regular"), (700, "Lato-Bold")) %}
-  @font-face { font-family: Lato; font-weight: {{ w }};
-    src: url(data:font/woff2;base64,{{ fonts[f] }}) format("woff2"); }
-  {% endfor %}
+  {% include "_fonts.html" %}
   @page { size: A4; margin: 10mm 13mm; }
   body { margin: 0; font: 8.2pt/1.36 Lato; color: #222; }
   h1 { margin: 0; font-size: 22pt; line-height: 1.1; }

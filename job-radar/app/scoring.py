@@ -3,12 +3,13 @@ from typing import Literal
 import anthropic
 from pydantic import BaseModel, Field, ValidationError
 
-MODEL = "claude-opus-5-5"
+MODEL = "claude-sonnet-5-5"  # plan: the cheap model scores, the strong one drafts
 
-RULES = """You score a job posting against a candidate profile.
-Every requirement you count as met must cite the specific profile item that proves it.
+RULES = """You score a job posting against a candidate's facts: profile.yaml (constraints),
+cv_*.yaml (their real CVs) and profile_additions.yaml (their answers to earlier questions).
+Every requirement you count as met must cite the specific fact that proves it.
 No citation, no credit: list it as missing instead.
-A dealbreaker from the profile that the posting hits caps the score at 20.
+A dealbreaker from profile.yaml that the posting hits caps the score at 20.
 Be discriminating: use the whole 0-100 range, a weak fit is not a 70."""
 
 
@@ -33,27 +34,32 @@ class Score(BaseModel):
     verdict: str
 
 
-def score(posting: str, profile: str, client: anthropic.Anthropic) -> tuple[Score, object]:
-    """Returns the validated score and the raw response (for usage + storage)."""
+def ask[T: BaseModel](client: anthropic.Anthropic, model: str, rules: str, facts: str,
+                      posting: str, schema: type[T]) -> tuple[T, object]:
+    """One structured call: validated output and the raw response (for usage + storage)."""
     for attempt in (1, 2):  # plan: retry once, then give up
         r = client.messages.parse(
-            model=MODEL,
+            model=model,
             max_tokens=16000,
-            # Profile is identical on every call: cache it.
+            # Facts are identical on every call: cache them.
             system=[
-                {"type": "text", "text": RULES},
-                {"type": "text", "text": f"<profile>\n{profile}\n</profile>",
+                {"type": "text", "text": rules},
+                {"type": "text", "text": f"<facts>\n{facts}\n</facts>",
                  "cache_control": {"type": "ephemeral"}},
             ],
             messages=[{"role": "user", "content": f"<posting>\n{posting}\n</posting>"}],
-            output_format=Score,
+            output_format=schema,
         )
         if r.stop_reason == "refusal":
             raise RuntimeError(f"model refused: {r.stop_details}")
         try:
             if r.parsed_output is not None:
-                return Score.model_validate(r.parsed_output.model_dump()), r
+                return schema.model_validate(r.parsed_output.model_dump()), r
         except ValidationError:
             pass
         if attempt == 2:
-            raise ValueError(f"unparseable score after retry: {r.content}")
+            raise ValueError(f"unparseable {schema.__name__} after retry: {r.content}")
+
+
+def score(posting: str, facts: str, client: anthropic.Anthropic) -> tuple[Score, object]:
+    return ask(client, MODEL, RULES, facts, posting, Score)

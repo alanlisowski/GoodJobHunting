@@ -4,7 +4,7 @@ from pypdf import PdfReader
 
 from app.render import render_pdf
 
-PL = "żarówka, ściąga, łódź"
+PL = "żarówka, ściąga, łódź, certified profile"
 
 
 def test_polish_pdf_is_one_page_in_the_bundled_font():

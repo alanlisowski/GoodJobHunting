@@ -24,3 +24,15 @@ class Posting(SQLModel, table=True):
     model: str
     profile_hash: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+
+class Draft(SQLModel, table=True):
+    # Many per posting: regenerating after answering gaps adds a row; the newest one counts.
+    id: int | None = Field(default=None, primary_key=True)
+    posting_id: int = Field(foreign_key="posting.id", index=True)
+    data: dict = Field(sa_column=Column(JSON))  # Tailored: CV sections, letter, gaps
+    raw: str
+    usage: dict = Field(sa_column=Column(JSON))
+    model: str
+    profile_hash: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))

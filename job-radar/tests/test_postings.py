@@ -1,36 +1,19 @@
-import shutil
-from pathlib import Path
-from types import SimpleNamespace
-
-from anthropic.types import Usage
-from fastapi.testclient import TestClient
-from sqlmodel import SQLModel, create_engine
-from sqlmodel.pool import StaticPool
-
-from app import main, models
+from app import main
 from app.scoring import Score
+from tests.conftest import RAW
 
-EXAMPLE = Path(__file__).parents[1] / "profile.example.yaml"
 TEXT = "Junior Python Developer at Acme. FastAPI, SQL, remote. " * 2
 
 
-def test_paste_score_list(monkeypatch, tmp_path):
-    engine = create_engine("sqlite://", poolclass=StaticPool,
-                           connect_args={"check_same_thread": False})
-    SQLModel.metadata.create_all(engine)
-    monkeypatch.setattr(models, "engine", engine)
-    monkeypatch.chdir(tmp_path)
-    shutil.copy(EXAMPLE, tmp_path / "profile.yaml")
+def test_paste_score_list(api, monkeypatch):
     scores = iter([40, 90, 70])
 
-    def fake_score(posting, profile, client):
-        s = Score(title="Dev", company="Acme", score=next(scores),
-                  met=[], missing=[], dealbreakers_hit=[], verdict="ok")
-        return s, SimpleNamespace(usage=Usage(input_tokens=10, output_tokens=5),
-                                  model_dump_json=lambda: '{"raw": 1}')
+    def fake_score(posting, facts, client):
+        return Score(title="Dev", company="Acme", score=next(scores),
+                     met=[], missing=[], dealbreakers_hit=[], verdict="ok"), RAW
 
     monkeypatch.setattr(main, "score", fake_score)
-    c = TestClient(main.app)
+    c = api
 
     assert c.post("/postings", json={"text": TEXT}).status_code == 201
     assert c.post("/postings", json={"text": TEXT}).status_code == 201

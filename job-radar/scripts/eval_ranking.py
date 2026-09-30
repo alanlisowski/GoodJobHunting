@@ -23,6 +23,7 @@ def spearman(expected: list[str], actual: list[str]) -> float:
 
 
 def main():
+    from app.profile import load
     from app.scoring import score
     from app.settings import settings
 
@@ -31,12 +32,12 @@ def main():
         raise SystemExit("expected.yaml must be a list: one '- name' per line")
     if missing := [n for n in expected if not (EVAL / f"{n}.txt").exists()]:
         raise SystemExit(f"no .txt file for: {missing}")
-    profile = Path("profile.yaml").read_text(encoding="utf-8")
+    _, facts, _ = load()
     client = anthropic.Anthropic(api_key=settings.anthropic_api_key.get_secret_value())
 
     results, tokens_in, tokens_out = {}, 0, 0
     for name in expected:
-        s, r = score((EVAL / f"{name}.txt").read_text(encoding="utf-8"), profile, client)
+        s, r = score((EVAL / f"{name}.txt").read_text(encoding="utf-8"), facts, client)
         results[name] = s
         tokens_in += r.usage.input_tokens + (r.usage.cache_read_input_tokens or 0)
         tokens_out += r.usage.output_tokens

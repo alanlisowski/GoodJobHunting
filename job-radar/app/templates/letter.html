@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<meta charset="utf-8">
+{# Data: lang, name, contact (lines of items), city, date, company, letter (body paragraphs). #}
+{% set h = {
+  "pl": {"to": "Do", "hello": "Szanowni Państwo,", "bye": "Z poważaniem,"},
+  "en": {"to": "To", "hello": "Dear Hiring Team,", "bye": "Kind regards,"},
+}[lang] %}
+<style>
+  {% include "_fonts.html" %}
+  @page { size: A4; margin: 18mm 20mm; }
+  body { margin: 0; font: 10.5pt/1.5 Lato; color: #222; }
+  h1 { margin: 0; font-size: 20pt; line-height: 1.1; }
+  p { margin: 0 0 9pt; }
+  .muted { color: #555; font-size: 9pt; }
+  .meta { display: flex; justify-content: space-between; margin: 16pt 0 18pt; }
+</style>
+
+<h1>{{ name }}</h1>
+{% for line in contact or [] %}<div class="muted">{{ line | join("  |  ") }}</div>{% endfor %}
+<div class="meta"><span>{{ h.to }}: <b>{{ company }}</b></span><span>{{ city }}, {{ date }}</span></div>
+<p>{{ h.hello }}</p>
+{% for para in letter %}<p>{{ para }}</p>{% endfor %}
+<p>{{ h.bye }}<br>{{ name }}</p>
+</html>

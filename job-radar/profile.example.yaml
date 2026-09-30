@@ -1,16 +1,4 @@
-# Copy to profile.yaml (gitignored) and fill with the truth. The model only credits what is written here.
-name: Jan Kowalski
+# Copy to profile.yaml (gitignored). Only what a CV doesn't say: the facts live in cv_<lang>.yaml.
 city: Kraków
-languages: {polish: native, english: C1}
 work: {modes: [remote, hybrid], max_commute_min: 45, relocation: no, salary_floor_pln: 9000}
-skills:
-  - {name: Python, level: 4, years: 3, evidence: "job-radar, FastAPI + SQLite"}
-  - {name: Java, level: 2, years: 1, evidence: "university Android dice game"}
-projects:
-  - name: job-radar
-    stack: [Python, FastAPI, SQLite, Claude API]
-    built: "Posting parser and LLM scoring with cited evidence"
-experience: []
-education: []
-certificates: []
 dealbreakers: ["on-site only outside Kraków", "unpaid trial period"]

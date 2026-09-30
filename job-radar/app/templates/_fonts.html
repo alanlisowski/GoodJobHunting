@@ -1,0 +1,8 @@
+  {# One full font file per weight, not latin/latin-ext subsets: split fonts make PDF text
+     extract as "ż arówka", which is what an ATS would read. #}
+  {% for w, f in ((400, "Lato-Regular"), (700, "Lato-Bold")) %}
+  @font-face { font-family: Lato; font-weight: {{ w }};
+    src: url(data:font/woff2;base64,{{ fonts[f] }}) format("woff2"); }
+  {% endfor %}
+  /* No "fi"/"fl" ligatures: they extract as U+FB01, so an ATS search for "certified" misses. */
+  * { font-variant-ligatures: none !important; }  /* !important: a later `font:` shorthand resets it */

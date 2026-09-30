@@ -1,9 +1,18 @@
+"""The candidate's facts: what every model call is allowed to believe.
+
+profile.yaml         constraints a CV doesn't carry (validated below)
+cv_<lang>.yaml       the real CVs, one per language (shape: templates/cv.html)
+profile_additions.yaml  answers to gap questions (appended by the app)
+"""
+
 import hashlib
 from pathlib import Path
 from typing import Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
+
+ADDITIONS = "profile_additions.yaml"
 
 
 class Strict(BaseModel):
@@ -17,35 +26,28 @@ class Work(Strict):
     salary_floor_pln: int
 
 
-class Skill(Strict):
-    name: str
-    level: int = Field(ge=1, le=5)
-    years: float
-    evidence: str
-
-
-class Project(Strict):
-    name: str
-    stack: list[str]
-    built: str
-    links: list[str] = []
-
-
 class Profile(Strict):
-    name: str
-    city: str
-    languages: dict[str, Literal["A1", "A2", "B1", "B2", "C1", "C2", "native"]]
+    city: str  # where commutes start from
     work: Work
-    skills: list[Skill]
-    projects: list[Project]
-    # ponytail: free-form until drafting (milestone 5) needs to cite them; type them then.
-    experience: list[dict]
-    education: list[dict]
-    certificates: list[str]
     dealbreakers: list[str]
 
 
 def load(path: str = "profile.yaml") -> tuple[Profile, str, str]:
-    """Validated profile, raw text (what the model sees), sha256 of that text."""
+    """Validated profile, all facts as one text (what the model sees), sha256 of that text."""
+    root = Path(path).parent
     text = Path(path).read_text(encoding="utf-8")
-    return Profile.model_validate(yaml.safe_load(text)), text, hashlib.sha256(text.encode()).hexdigest()
+    p = Profile.model_validate(yaml.safe_load(text))
+    cvs = sorted(root.glob("cv_*.yaml"))
+    if not cvs:
+        raise FileNotFoundError(f"no cv_<lang>.yaml next to {path}: the CVs are the facts")
+    files = [Path(path), *cvs, *[f for f in [root / ADDITIONS] if f.exists()]]
+    facts = ""
+    for f in files:
+        body = f.read_text(encoding="utf-8")
+        yaml.safe_load(body)  # fail loudly on a broken CV or additions file
+        facts += f"<file name=\"{f.name}\">\n{body}\n</file>\n"
+    return p, facts, hashlib.sha256(facts.encode()).hexdigest()
+
+
+def base_cv(lang: str, root: str = ".") -> dict:
+    return yaml.safe_load((Path(root) / f"cv_{lang}.yaml").read_text(encoding="utf-8"))
