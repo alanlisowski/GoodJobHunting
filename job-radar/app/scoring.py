@@ -23,6 +23,9 @@ class Missing(BaseModel):
 
 
 class Score(BaseModel):
+    # ponytail: title/company extracted here instead of a parser; add parsers if these come out wrong.
+    title: str
+    company: str
     score: int = Field(ge=0, le=100)
     met: list[Met]
     missing: list[Missing]

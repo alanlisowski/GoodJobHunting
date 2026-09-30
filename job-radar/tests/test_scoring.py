@@ -5,7 +5,7 @@ import pytest
 from app.scoring import Score, score
 from scripts.eval_ranking import spearman
 
-GOOD = Score(score=80, met=[], missing=[], dealbreakers_hit=[], verdict="ok")
+GOOD = Score(title="Dev", company="Acme", score=80, met=[], missing=[], dealbreakers_hit=[], verdict="ok")
 
 
 class FakeClient:
