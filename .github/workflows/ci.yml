@@ -1,9 +1,15 @@
 name: CI
 on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
   check:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: job-radar
     env:
+      # Dummies: CI must never need a real key.
       ANTHROPIC_API_KEY: dummy
       CAPTURE_TOKEN: dummy
     steps:
