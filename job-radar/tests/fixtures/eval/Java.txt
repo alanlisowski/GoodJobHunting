@@ -1,0 +1,49 @@
+Wymagane
+TypeScript
+Node.js
+React.js
+Next.js
+REST API
+SQL
+
+Mile widziane
+Docker
+CI/CD
+GitHub
+SaaS
+
+Twój zakres obowiązków
+rozwój i utrzymanie platformy TAX SYNC,
+tworzenie nowych funkcjonalności oraz rozwijanie istniejącego systemu produkcyjnego,
+projektowanie i rozwijanie backendu, API oraz integracji z systemami zewnętrznymi,
+rozwijanie interfejsu aplikacji z wykorzystaniem React i Next.js,
+tworzenie dashboardów, formularzy oraz procesów workflow,
+integracja frontendu z API,
+praca przy rozwiązaniach związanych m.in. z KSeF, księgowością, fakturowaniem, bankowością, płatnościami, Cash Flow, windykacją, raportowaniem i automatyzacją procesów,
+dbanie o bezpieczeństwo, stabilność i wydajność systemu,
+przygotowywanie testów, debugowanie oraz diagnozowanie błędów,
+udział w projektowaniu architektury aplikacji,
+dokumentowanie najważniejszych rozwiązań technologicznych,
+udział w analizie zadań, estymacji, code review, testach i wdrożeniach,
+wykorzystywanie narzędzi AI w celu usprawnienia i przyspieszenia pracy,
+współpraca z pozostałymi członkami zespołu i dzielenie się wiedzą o systemie.
+Nasze wymagania
+bardzo dobra znajomość TypeScript,
+doświadczenie w tworzeniu i rozwijaniu aplikacji webowych,
+mocne kompetencje w co najmniej jednym z obszarów:
+backend: Node.js, REST API, bazy danych, architektura aplikacji i integracje zewnętrzne,
+frontend: React, Next.js, integracja z API oraz tworzenie nowoczesnych interfejsów aplikacji,
+doświadczenie w pracy z istniejącym kodem i rozwijaniu działających systemów produkcyjnych,
+znajomość zasad testowania, debugowania oraz optymalizacji aplikacji,
+umiejętność samodzielnego analizowania problemów i proponowania rozwiązań,
+odpowiedzialność za jakość, stabilność i bezpieczeństwo tworzonego oprogramowania,
+umiejętność pracy zespołowej, prowadzenia code review i dzielenia się wiedzą,
+aktywne wykorzystywanie narzędzi AI w codziennej pracy, m.in. do tworzenia i analizy kodu, refaktoryzacji, testowania, debugowania oraz dokumentacji,
+dobra organizacja pracy i komunikowanie potencjalnych problemów z odpowiednim wyprzedzeniem
+Mile widziane
+doświadczenie z Dockerem oraz procesami CI/CD,
+znajomość monitoringu, logowania i diagnostyki błędów,
+doświadczenie w projektach SaaS, ERP, fintech lub aplikacjach biznesowych,
+znajomość KSeF, systemów księgowych, bankowości, Open Banking albo systemów płatniczych,
+doświadczenie w projektowaniu dashboardów, formularzy i procesów workflow,
+znajomość zasad UX/UI w aplikacjach biznesowych.

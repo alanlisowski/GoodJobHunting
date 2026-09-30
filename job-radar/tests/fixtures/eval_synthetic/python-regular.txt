@@ -1,0 +1,9 @@
+Python Developer (Regular) — FinStack, Remote
+Salary: 13 000 – 17 000 PLN net B2B
+Requirements:
+- 2+ years of commercial Python experience
+- Django and Django REST Framework
+- PostgreSQL, Docker
+- Code review and production on-call experience
+Nice to have: Celery, AWS
+Fully remote.

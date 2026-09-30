@@ -1,0 +1,12 @@
+Junior Python Developer (FastAPI) — Lumen Data, Remote (Poland)
+Salary: 9 000 – 12 000 PLN gross (UoP) or B2B equivalent
+We build internal APIs for logistics customers.
+Requirements:
+- Python, 1+ year (personal or commercial projects count)
+- FastAPI or Flask
+- SQL (SQLite or PostgreSQL)
+- Git, basic testing with pytest
+- English B2
+Nice to have: experience calling LLM APIs, Docker
+No commercial experience required — show us a project on GitHub.
+Fully remote, paid from day one.

@@ -1,0 +1,42 @@
+Wymagane
+Java
+Spring Boot
+REST
+SOAP
+Relacyjne Bazy Danych
+Git
+Maven
+Jira
+Jenkins
+
+Mile widziane
+Kafka
+ESB
+GCP
+NoSQL
+Docker
+Kubernetes
+Anthos
+Micronaut
+
+Twój zakres obowiązków
+Projektowanie, implementacja i rozwój usług oraz mikroserwisów integracyjnych.
+Tworzenie mechanizmów transformacji, walidacji i wzbogacania danych.
+Rozwój komponentów wykorzystywanych w procesach integracyjnych.
+Tworzenie testów jednostkowych i integracyjnych.
+Analiza i rozwiązywanie problemów związanych z wymianą danych.
+Optymalizacja wydajności, skalowalności i stabilności rozwiązań.
+Tworzenie dokumentacji technicznej.
+Współpraca z zespołami analitycznymi, architektonicznymi i developerskimi.
+Nasze wymagania
+3-5 lat komercyjnego doświadczenia w programowaniu w Javie
+Java SE 11 lub nowsza
+Spring Boot, Spring Integration
+SOAP, REST, XML, JSON
+relacyjne bazy danych
+Git, Maven, Jira, Jenkins
+Wykształcenie wyższe informatyczne lub pokrewne
+Mile widziane
+Doświadczenie z GCP, w szczególności BigQuery, CloudSQL lub Pub/Sub
+Znajomość nierelacyjnych baz danych oraz Docker, Kubernetes Engine lub Anthos
+Atutem będzie znajomość innych frameworków, np. Micronaut

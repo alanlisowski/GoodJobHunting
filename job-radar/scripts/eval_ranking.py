@@ -2,15 +2,16 @@
 
 Put pasted posting text in tests/fixtures/eval/<name>.txt and your own order,
 best fit first, in tests/fixtures/eval/expected.yaml as a list of <name>s.
-Run from job-radar/: python -m scripts.eval_ranking
+Run from job-radar/: python -m scripts.eval_ranking [eval_dir]
 """
 
+import sys
 from pathlib import Path
 
 import anthropic
 import yaml
 
-EVAL = Path("tests/fixtures/eval")
+EVAL = Path(sys.argv[1] if len(sys.argv) > 1 else "tests/fixtures/eval")
 
 
 def spearman(expected: list[str], actual: list[str]) -> float:
@@ -26,6 +27,10 @@ def main():
     from app.settings import settings
 
     expected = yaml.safe_load((EVAL / "expected.yaml").read_text(encoding="utf-8"))
+    if not isinstance(expected, list):
+        raise SystemExit("expected.yaml must be a list: one '- name' per line")
+    if missing := [n for n in expected if not (EVAL / f"{n}.txt").exists()]:
+        raise SystemExit(f"no .txt file for: {missing}")
     profile = Path("profile.yaml").read_text(encoding="utf-8")
     client = anthropic.Anthropic(api_key=settings.anthropic_api_key.get_secret_value())
 

@@ -1,0 +1,8 @@
+Junior Java Developer — Baltic Systems, Warsaw (hybrid, 3 days in office)
+Salary: 8 000 – 10 000 PLN gross
+Requirements:
+- Java 17, Spring Boot
+- JUnit, Mockito
+- SQL, Maven
+- English B2
+Relocation package available.

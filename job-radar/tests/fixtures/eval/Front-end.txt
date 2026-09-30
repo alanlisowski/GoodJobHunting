@@ -1,0 +1,39 @@
+Wymagane
+C++
+C
+Vite
+
+Mile widziane
+Python
+Vim
+
+Twój zakres obowiązków
+Programowanie z wykorzystaniem C++, C, VHDL
+Rozwijanie oprogramowania dla systemów wbudowanych opartych na platformie Zynq i systemie FreeRTOS
+Tworzenie systemu budowania opartego na CMake
+Programowanie narzędzi i skryptów w Pythonie
+Automatyzacja narzędzi Xilinx z wykorzystaniem skryptów TCL
+Diagnozowanie i debugowanie elektroniki z użyciem narzędzi diagnostycznych
+Współpraca z zespołem projektantów elektroniki oraz udział w projektowaniu architektury oprogramowania
+Przygotowywanie dokumentacji HLD i LLD
+Debugowanie elektroniki i uruchamianie oprogramowania na sprzęcie
+Analiza wymagań w obszarze IFF / STANAG 4193
+Nasze wymagania
+Wykształcenie wyższe – informatyka, elektronika, telekomunikacja lub pokrewne
+Min. 4 lata doświadczenia w programowaniu w C++ (najlepiej w systemach embedded)
+Min. 2 lata doświadczenia w programowaniu systemów wbudowanych
+Bardzo dobra znajomość nowoczesnego C++ (C++20 i nowszy)
+Praktyczna znajomość VHDL i Python
+Doświadczenie w tworzeniu aplikacji wielowątkowych
+Znajomość VHDL i platformy Zynq (AMD/Xilinx)
+Doświadczenie z FreeRTOS
+Znajomość TCL w kontekście automatyzacji testów
+Zdolność do rozwiązywania problemów technicznych, umiejętność analizy danych i wyciągania wniosków
+Komunikatywność i umiejętność pracy w zespole
+Posiadanie PSC (poświadczenia bezpieczeństwa) lub gotowość do przejścia postępowania ABW
+Mile widziane
+Znajomość systemów IFF i standardu STANAG 4193
+Doświadczenie w analizie niskopoziomowej (HLD, LLD)
+Znajomość układów System on Chip / Zynq
+Znajomość mikrokontrolerów STM32
+Znajomość technik radiowych oraz metod cyfrowego przetwarzania sygnałów

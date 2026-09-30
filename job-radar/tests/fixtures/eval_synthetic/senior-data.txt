@@ -1,0 +1,8 @@
+Senior Data Engineer — Nordvolt Analytics, Remote
+Salary: 25 000 – 32 000 PLN net B2B
+Requirements:
+- 5+ years of commercial experience in data engineering
+- Python, PySpark, Airflow
+- AWS (Glue, EMR, Redshift), Terraform
+- Leading a team of 3–5 engineers
+Fully remote.

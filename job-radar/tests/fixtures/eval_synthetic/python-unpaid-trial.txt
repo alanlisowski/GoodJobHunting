@@ -1,0 +1,5 @@
+Junior Python Developer — StartNow, Remote
+Salary after trial: 9 000 PLN gross
+Requirements:
+- Python, FastAPI, SQL
+Every new hire starts with a 3-month unpaid trial project before receiving a contract.

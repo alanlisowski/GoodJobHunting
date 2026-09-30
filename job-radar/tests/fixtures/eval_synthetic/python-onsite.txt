@@ -1,0 +1,6 @@
+Junior Python Developer (FastAPI) — Kraków, on-site only
+Salary: 10 000 – 12 000 PLN gross
+Requirements:
+- Python, FastAPI, SQL, pytest
+- Interest in LLM integrations
+Work is 100% in our Kraków office, no remote days.

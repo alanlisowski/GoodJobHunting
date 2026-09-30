@@ -1,0 +1,9 @@
+Młodszy Programista Full-stack (Python + TypeScript) — Warmia Soft, Olsztyn (hybrydowo, 2 dni w biurze)
+Wynagrodzenie: 8 500 – 10 500 PLN brutto (UoP)
+Wymagania:
+- Python (Django lub FastAPI)
+- TypeScript, podstawy React
+- REST API, SQL
+- Język angielski na poziomie komunikatywnym
+Mile widziane: Jenkins lub inne CI, Docker
+Oferujemy: mentoring, szkolenia, pracę hybrydową w Olsztynie.

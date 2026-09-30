@@ -1,0 +1,37 @@
+Wymagane
+.NET
+.NET Core
+.NET Framework
+HTML
+CSS
+
+Mile widziane
+RWD
+Blazor
+Karma
+Jasmine
+CI/CD
+Kubernetes
+XML
+JWT
+MVC
+JSON
+
+Twój zakres obowiązków
+Rozbudowa i utrzymanie istniejących aplikacji;
+Projektowanie i tworzenie nowych rozwiązań backendowych i frontendowych;
+Udział w analizie wymagań oraz projektowaniu architektury rozwiązań;
+Dbanie o jakość kodu zgodnie z dobrymi praktykami programistycznymi;
+Współpraca z zespołem projektowym przy rozwoju i utrzymaniu aplikacji;
+Rozwijanie swoich kompetencji technicznych i śledzenie trendów technologicznych;
+Zgłaszanie usprawnień technicznych i procesowych.
+Nasze wymagania
+Bardzo dobrze znasz C#, .NET Framework, .NET 5+ / .NET Core, ASP.NET MVC 4+;
+Masz doświadczenie z technologiami frontendowymi: ES2015+, HTML, CSS, Bootstrap 3+, jQuery, podstawy Angular 9+, Angular Material, TypeScript;
+Znasz podstawy Entity Framework, LINQ, oraz MSSQL / T‑SQL;
+Rozumiesz dobre praktyki: SOLID, Clean Code, Design Patterns;
+Potrafisz pracować z SOAP, REST, Web API;
+Potrafisz debugować, analizować problemy i dbać o jakość kodu;
+Jesteś dobrze zorganizowany/a, komunikatywny/a, chętny/a do nauki i współpracy.
+Mile widziane
+Znajomość: RWD, Blazor, testów jednostkowych/E2E (Karma, Jasmine), CI/CD, Kubernetes, XML, JWT, MVC, JSON.

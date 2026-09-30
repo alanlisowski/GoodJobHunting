@@ -1,0 +1,9 @@
+Junior Node.js / React Developer — Pixelcraft, Remote
+Salary: 7 000 – 9 000 PLN gross
+Requirements:
+- TypeScript
+- Node.js (Express or NestJS), 1+ year
+- React, including hooks and state management
+- REST APIs
+Nice to have: Next.js, Jest
+Remote-first team, paid from day one.
