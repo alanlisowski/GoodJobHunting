@@ -37,3 +37,16 @@ def test_paste_score_list(api, monkeypatch):
     r = c.post("/postings", content=f'{{"text": "{TEXT}"}}',
                headers={"content-type": "text/plain"})
     assert r.status_code == 422
+
+
+def test_failed_rescore_keeps_the_old_score(api, monkeypatch):
+    monkeypatch.setattr(main, "score", lambda *a: (Score(
+        title="Dev", company="Acme", score=55, met=[], missing=[], dealbreakers_hit=[], verdict="ok"), RAW))
+    api.post("/postings", json={"text": TEXT})
+
+    def boom(*a):
+        raise ValueError("unparseable Score after retry")
+
+    monkeypatch.setattr(main, "score", boom)
+    assert api.post("/postings/1/score").status_code == 502
+    assert api.get("/postings/1").json()["score"] == 55

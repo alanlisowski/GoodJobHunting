@@ -1,3 +1,5 @@
+[![CI](https://github.com/alanlisowski/GoodJobHunting/actions/workflows/ci.yml/badge.svg)](https://github.com/alanlisowski/GoodJobHunting/actions/workflows/ci.yml)
+
 # job-radar
 
 Local job-hunting tool. FastAPI + SQLite, runs on your machine only.

@@ -30,3 +30,10 @@ def test_score_gives_up_after_retry():
 def test_spearman():
     assert spearman(list("abc"), list("abc")) == 1
     assert spearman(list("abc"), list("cba")) == -1
+
+
+def test_refusal_is_an_error_not_a_score():
+    c = FakeClient()
+    c.parse = lambda **kw: SimpleNamespace(parsed_output=None, stop_reason="refusal", stop_details="nope", content="")
+    with pytest.raises(RuntimeError, match="refused"):
+        score("posting", "profile", c)
