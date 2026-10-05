@@ -1,0 +1,8 @@
+{# Needs `p` and `statuses`. Shared by the ledger rows and the detail page. #}
+<span class="pill s-{{ p.status }}">{{ p.status }}</span>
+{% if p.status == "rejected" %}<span class="consolation">It's not your fault.</span>{% endif %}
+<form class="set-status" data-was="{{ p.status }}" onsubmit="event.preventDefault(); setStatus(this, {{ p.id }})">
+  <label class="sr-only" for="status{{ p.id }}">Status</label>
+  <select id="status{{ p.id }}" name="status">{% for s in statuses %}<option{% if s == p.status %} selected{% endif %}>{{ s }}</option>{% endfor %}</select>
+  <button>Set</button>
+</form>

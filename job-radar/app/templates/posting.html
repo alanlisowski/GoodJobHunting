@@ -7,6 +7,7 @@
 <p class="meta">{{ p.company }} · {{ p.model }}
   {% if p.stale %}<span class="stale">stale · rescore</span>{% endif %}
   <button onclick="post(this, '/postings/{{ p.id }}/score')">Rescore</button></p>
+<div class="side detail-status">{% include "_status.html" %}</div>
 <p>{{ p.verdict }}</p>
 <p id="err" role="alert"></p>
 

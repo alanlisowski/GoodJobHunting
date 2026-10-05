@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from typing import Literal
 
 from sqlmodel import JSON, Column, Field, SQLModel, create_engine
 
@@ -8,6 +9,17 @@ from app.settings import settings
 engine = create_engine(
     f"sqlite:///{settings.db_path}", connect_args={"check_same_thread": False}
 )
+
+
+Status = Literal["new", "shortlisted", "applied", "interview", "rejected", "ignored"]
+
+
+def migrate(engine) -> None:
+    """create_all never alters an existing table: add columns newer than the user's database."""
+    # ponytail: hand-rolled ALTERs; switch to Alembic when a change needs more than ADD COLUMN.
+    with engine.begin() as c:
+        if "status" not in {row[1] for row in c.exec_driver_sql("PRAGMA table_info(posting)")}:
+            c.exec_driver_sql("ALTER TABLE posting ADD COLUMN status VARCHAR NOT NULL DEFAULT 'new'")
 
 
 class Posting(SQLModel, table=True):
@@ -23,6 +35,7 @@ class Posting(SQLModel, table=True):
     raw: str  # full model response, to debug a bad score
     model: str
     profile_hash: str
+    status: str = "new"  # a Status; checked at the endpoint, plain str in the table
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 

@@ -2,6 +2,7 @@ import secrets
 from contextlib import asynccontextmanager
 from datetime import date
 from pathlib import Path
+from typing import get_args
 from urllib.parse import urlsplit
 
 import anthropic
@@ -16,7 +17,7 @@ from sqlalchemy.orm.attributes import flag_modified
 from sqlmodel import Session, SQLModel, col, select
 
 from app import drafting, models, profile
-from app.models import Draft, Posting
+from app.models import Draft, Posting, Status
 from app.render import render_pdf
 from app.scoring import MODEL, score
 from app.settings import settings
@@ -25,7 +26,8 @@ from app.settings import settings
 @asynccontextmanager
 async def lifespan(_):
     profile.load()  # fail at boot on a missing or invalid profile.yaml
-    SQLModel.metadata.create_all(models.engine)  # ponytail: no migrations; add Alembic on the first schema change with data worth keeping
+    SQLModel.metadata.create_all(models.engine)
+    models.migrate(models.engine)
     yield
 
 
@@ -57,6 +59,10 @@ class CaptureIn(PostingIn):
 
 class NoteIn(BaseModel):
     note: str = Field(max_length=5000)  # empty clears it
+
+
+class StatusIn(BaseModel):
+    status: Status
 
 
 class AnswerIn(BaseModel):
@@ -175,11 +181,33 @@ def save_note(posting_id: int, n: NoteIn) -> dict:
         return out(posting)
 
 
+@app.post("/postings/{posting_id}/status")
+def set_status(posting_id: int, s: StatusIn) -> dict:
+    with Session(models.engine) as db:
+        if not (posting := db.get(Posting, posting_id)):
+            raise HTTPException(404)
+        posting.status = s.status
+        db.add(posting)
+        db.commit()
+        db.refresh(posting)
+        return out(posting)
+
+
+def matches(p: Posting, q: str) -> bool:
+    """Case-insensitive substring over title, company and the requirements the scorer listed."""
+    reqs = [m["requirement"] for m in p.result["met"] + p.result["missing"]]
+    return q.casefold() in " ".join([p.title, p.company, *reqs]).casefold()
+
+
 @app.get("/postings")
-def list_postings() -> list[dict]:
+def list_postings(status: Status | None = None, q: str = "") -> list[dict]:
+    query = select(Posting).order_by(col(Posting.score).desc())
+    if status:
+        query = query.where(Posting.status == status)
     with Session(models.engine) as db:
         h = current_profile()[2]
-        return [out(p, h) for p in db.exec(select(Posting).order_by(col(Posting.score).desc()))]
+        # ponytail: q filters in Python (requirements live in JSON); move to SQLite FTS past a few thousand rows.
+        return [out(p, h) for p in db.exec(query) if matches(p, q.strip())]
 
 
 @app.get("/usage")
@@ -276,8 +304,9 @@ def letter_pdf(posting_id: int) -> Response:
 
 
 @app.get("/", response_class=HTMLResponse)
-def desk(request: Request):
-    return pages.TemplateResponse(request, "desk.html", {"postings": list_postings(), "usage": usage()})
+def desk(request: Request, status: Status | None = None, q: str = ""):
+    return pages.TemplateResponse(request, "desk.html", {
+        "postings": list_postings(status, q), "usage": usage(), "status": status, "q": q, "statuses": get_args(Status)})
 
 
 @app.get("/p/{posting_id}", response_class=HTMLResponse)
@@ -289,7 +318,7 @@ def posting_page(request: Request, posting_id: int):
         d = None
     additions = Path(profile.ADDITIONS)
     answered = {a["question"] for a in yaml.safe_load(additions.read_text(encoding="utf-8")) or []} if additions.exists() else set()
-    return pages.TemplateResponse(request, "posting.html", {"p": p, "d": d, "answered": answered})
+    return pages.TemplateResponse(request, "posting.html", {"p": p, "d": d, "answered": answered, "statuses": get_args(Status)})
 
 
 if __name__ == "__main__":

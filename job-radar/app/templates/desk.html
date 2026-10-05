@@ -21,6 +21,19 @@
 <p id="err" role="alert"></p>
 <p class="cost">Tokens so far: {{ usage.input_tokens + usage.cache_creation_input_tokens + usage.cache_read_input_tokens }} in, {{ usage.output_tokens }} out.</p>
 
+<nav class="chips" aria-label="Filter by status">
+  <a href="/{% if q %}?q={{ q | urlencode }}{% endif %}"{% if not status %} aria-current="page"{% endif %}>all</a>
+  {%- for s in statuses %}
+  <a href="/?status={{ s }}{% if q %}&amp;q={{ q | urlencode }}{% endif %}"{% if s == status %} aria-current="page"{% endif %}>{{ s }}</a>
+  {%- endfor %}
+</nav>
+<form class="search" role="search" method="get" action="/">
+  {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+  <label class="sr-only" for="q">Search title, company or tech</label>
+  <input type="search" id="q" name="q" value="{{ q }}" placeholder="title, company, tech…">
+  <button>Search</button>
+</form>
+
 {% if postings %}
 <ul class="ledger">
   {% for p in postings %}
@@ -35,10 +48,12 @@
         {%- for m in p.result.missing[:3] %}<span class="no">✗ {{ m.requirement }}</span><br>{% endfor %}
       </p>
     </div>
-    <div>{% if p.stale %}<span class="stale">stale · rescore</span>{% endif %}</div>
+    <div class="side">{% include "_status.html" %}{% if p.stale %}<span class="stale">stale · rescore</span>{% endif %}</div>
   </li>
   {% endfor %}
 </ul>
+{% elif status or q %}
+<p class="meta">Nothing matches. <a href="/">Show all</a></p>
 {% else %}
 <div class="bench"><div class="pic"><img src="/static/img/bench.png" alt="" onerror="this.parentNode.classList.add('halftone'); this.remove()"></div><p>Your move, chief.</p></div>
 {% endif %}

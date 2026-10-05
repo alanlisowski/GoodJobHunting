@@ -14,6 +14,13 @@
     button.disabled = false; button.textContent = label;
     document.getElementById("err").textContent = `${r.status}: ${(await r.text()).slice(0, 500)}`;
   }
+  function setStatus(form, id) {
+    post(form.querySelector("button"), `/postings/${id}/status`, {status: form.status.value}, p => {
+      if (p.status != "interview" || form.dataset.was == "interview") return location.reload();
+      document.getElementById("toast").textContent = "How do you like them apples?";
+      setTimeout(() => location.reload(), 1800);
+    });
+  }
 </script>
 
 <div class="eqs" aria-hidden="true">
@@ -30,4 +37,5 @@
 <header class="compact"><a href="/">Good Job Hunting</a>{% block subtitle %}{% endblock %}</header>
 {% endblock %}
 <main>{% block body %}{% endblock %}</main>
+<p id="toast" class="toast" role="status"></p>
 </html>

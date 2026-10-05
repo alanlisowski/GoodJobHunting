@@ -1,4 +1,4 @@
-from app import main
+from app import main, models
 from app.scoring import Met, Missing, Score
 from tests.conftest import RAW
 
@@ -50,3 +50,49 @@ def test_note_reaches_draft_and_survives_rescore(api, monkeypatch):
     monkeypatch.setattr(main.drafting, "tailor", lambda text, *a: seen.append(text) or (_ for _ in ()).throw(ValueError("stop")))
     api.post("/postings/1/draft")
     assert seen[0].endswith("<notes>\nI used Java at uni.\n</notes>")
+
+
+def add(api, monkeypatch, title, company, missing=()):
+    monkeypatch.setattr(main, "score", lambda *a: (Score(
+        title=title, company=company, score=60, met=[],
+        missing=[Missing(requirement=r, severity="minor") for r in missing], dealbreakers_hit=[], verdict="Maybe."), RAW))
+    return api.post("/postings", json={"text": TEXT}).json()["id"]
+
+
+def test_status(api, monkeypatch):
+    pid = add(api, monkeypatch, "Python Dev", "Acme")
+    assert api.get(f"/postings/{pid}").json()["status"] == "new"
+    assert api.post(f"/postings/{pid}/status", json={"status": "interview"}).json()["status"] == "interview"
+    assert api.get(f"/postings/{pid}").json()["status"] == "interview"
+    assert api.post(f"/postings/{pid}/status", json={"status": "hired"}).status_code == 422
+    assert api.post("/postings/99/status", json={"status": "applied"}).status_code == 404
+
+    api.post(f"/postings/{pid}/status", json={"status": "rejected"})
+    assert "It's not your fault." in api.get("/").text
+
+
+def test_filters(api, monkeypatch):
+    a = add(api, monkeypatch, "Python Dev", "Acme", missing=["Kubernetes"])
+    add(api, monkeypatch, "Java Dev", "Globex")
+    api.post(f"/postings/{a}/status", json={"status": "applied"})
+
+    def ids(**params):
+        return [p["id"] for p in api.get("/postings", params=params).json()]
+    assert len(ids()) == 2
+    assert ids(status="applied") == [a]
+    assert ids(q="ACME") == ids(q="python") == ids(q="kubernetes") == [a]  # company, title, tech
+    assert ids(status="new", q="acme") == []
+    assert api.get("/postings", params={"status": "hired"}).status_code == 422
+    assert "Nothing matches" in api.get("/", params={"q": "cobol"}).text
+
+
+def test_migrate_adds_status_to_old_db(tmp_path):
+    from sqlmodel import create_engine
+    engine = create_engine(f"sqlite:///{tmp_path / 'old.db'}")
+    with engine.begin() as c:
+        c.exec_driver_sql("CREATE TABLE posting (id INTEGER PRIMARY KEY, title VARCHAR)")
+        c.exec_driver_sql("INSERT INTO posting (title) VALUES ('old one')")
+    models.migrate(engine)
+    models.migrate(engine)  # second boot is a no-op
+    with engine.begin() as c:
+        assert c.exec_driver_sql("SELECT status FROM posting").scalar() == "new"
