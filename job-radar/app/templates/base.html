@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Good Job Hunting{% endblock %}</title>
+<link rel="stylesheet" href="/static/css/theme.css">
+<script>
+  // JSON on purpose: another site can't send it without a CORS preflight, which we never allow.
+  async function post(button, url, body, then) {
+    const label = button.textContent;
+    button.disabled = true; button.textContent = "Working…";
+    const r = await fetch(url, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body ?? {})});
+    if (r.ok) return then ? then(await r.json()) : location.reload();
+    button.disabled = false; button.textContent = label;
+    document.getElementById("err").textContent = `${r.status}: ${(await r.text()).slice(0, 500)}`;
+  }
+</script>
+
+<div class="eqs" aria-hidden="true">
+<span style="top: 6%; left: 58%">A = [0 1 0 1
+     1 0 2 1
+     0 2 0 0
+     1 1 0 0]</span>
+<span style="top: 42%; left: 2%">fit(p) = Σ wᵢ·mᵢ − λ·gaps(p)</span>
+<span style="top: 68%; left: 50%">(I − zA)⁻¹ → offers(z)</span>
+<span style="top: 88%; left: 12%">∫ coffee dt ≥ 1 CV</span>
+</div>
+
+{% block header %}
+<header class="compact"><a href="/">Good Job Hunting</a>{% block subtitle %}{% endblock %}</header>
+{% endblock %}
+<main>{% block body %}{% endblock %}</main>
+</html>

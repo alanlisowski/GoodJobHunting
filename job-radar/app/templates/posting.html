@@ -1,25 +1,23 @@
-<!doctype html>
-<html lang="en">
-<meta charset="utf-8">
-<title>{{ p.title }}</title>
-{% include "_desk.html" %}
+{% extends "base.html" %}
+{% block title %}{{ p.title }}{% endblock %}
+{% block subtitle %}<span class="meta">← all postings</span>{% endblock %}
 
-<p><a href="/">← All postings</a></p>
-<h1>{{ p.title }}</h1>
-<p class="muted">{{ p.company }} · score <b>{{ p.score }}</b> · {{ p.model }}
-  {% if p.stale %}<span class="stale">stale: profile changed</span>{% endif %}
+{% block body %}
+<h1><span class="score {{ 'hi' if p.score >= 80 else 'lo' if p.score < 50 }}">{{ p.score }}</span> {{ p.title }}</h1>
+<p class="meta">{{ p.company }} · {{ p.model }}
+  {% if p.stale %}<span class="stale">stale · rescore</span>{% endif %}
   <button onclick="post(this, '/postings/{{ p.id }}/score')">Rescore</button></p>
 <p>{{ p.verdict }}</p>
 <p id="err" role="alert"></p>
 
 <h2>Met</h2>
-<ul>{% for m in p.result.met %}<li>{{ m.requirement }} <span class="muted">({{ m.evidence_from_profile }})</span></li>{% else %}<li class="muted">None</li>{% endfor %}</ul>
+<ul class="checks">{% for m in p.result.met %}<li><span class="ok">✓ {{ m.requirement }}</span> <span class="muted">({{ m.evidence_from_profile }})</span></li>{% else %}<li class="muted">None</li>{% endfor %}</ul>
 <h2>Missing</h2>
-<ul>{% for m in p.result.missing %}<li>{% if m.severity == "blocker" %}<b>Blocker:</b> {% endif %}{{ m.requirement }}
+<ul class="checks">{% for m in p.result.missing %}<li class="no">✗ {% if m.severity == "blocker" %}<b>Blocker:</b> {% endif %}{{ m.requirement }}
   <button onclick="post(this, '/postings/{{ p.id }}/missing/{{ loop.index0 }}')">{{ "Not a blocker" if m.severity == "blocker" else "Make blocker" }}</button></li>{% else %}<li class="muted">None</li>{% endfor %}</ul>
 {% if p.result.dealbreakers_hit %}
 <h2>Dealbreakers hit</h2>
-<ul>{% for x in p.result.dealbreakers_hit %}<li>{{ x }}</li>{% endfor %}</ul>
+<ul class="checks">{% for x in p.result.dealbreakers_hit %}<li class="no">✗ {{ x }}</li>{% endfor %}</ul>
 {% endif %}
 
 <h2>Your notes</h2>
@@ -52,4 +50,4 @@
 <span class="muted">Uses the drafting model. Answer the gaps first.</span>
 
 <details><summary>Posting text</summary><pre>{{ p.text }}</pre></details>
-</html>
+{% endblock %}

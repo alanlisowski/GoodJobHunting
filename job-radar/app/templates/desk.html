@@ -1,29 +1,45 @@
-<!doctype html>
-<html lang="en">
-<meta charset="utf-8">
-<title>Job Radar</title>
-{% include "_desk.html" %}
+{% extends "base.html" %}
 
-<h1>Job Radar</h1>
+{% block header %}
+<header class="masthead">
+  {# Fails to load → sepia halftone block, not a broken icon. #}
+  <div class="pic"><img src="/static/img/hero.png" alt="" onerror="this.parentNode.classList.add('halftone'); this.remove()"></div>
+  <div>
+    <h1 class="wordmark">Good Job<br>Hunting</h1>
+    <p class="quote">"Sorry, I had to go see about a job."<b>— Alan</b></p>
+  </div>
+</header>
+{% endblock %}
+
+{% block body %}
+<hr class="rule">
 <form onsubmit="event.preventDefault(); post(this.querySelector('button'), '/postings', {text: this.text.value}, p => location = '/p/' + p.id)">
   <label for="text">Paste a posting</label>
   <textarea id="text" name="text" rows="6" required minlength="50"></textarea>
   <button>Score it</button>
 </form>
 <p id="err" role="alert"></p>
+<p class="cost">Tokens so far: {{ usage.input_tokens + usage.cache_creation_input_tokens + usage.cache_read_input_tokens }} in, {{ usage.output_tokens }} out.</p>
 
-<table>
-  <tr><th>Score</th><th>Posting</th><th>Added</th></tr>
+{% if postings %}
+<ul class="ledger">
   {% for p in postings %}
-  <tr>
-    <td class="score">{{ p.score }}</td>
-    <td><a href="/p/{{ p.id }}">{{ p.title }}</a> {% if p.stale %}<span class="stale">stale</span>{% endif %}<br>
-      <span class="muted">{{ p.company }} · {{ p.verdict | truncate(160) }}</span></td>
-    <td class="muted">{{ p.created_at.strftime("%d.%m") }}</td>
-  </tr>
-  {% else %}
-  <tr><td colspan="3" class="muted">Nothing yet. Paste a posting above.</td></tr>
+  <li>
+    <div class="score {{ 'hi' if p.score >= 80 else 'lo' if p.score < 50 }}">{{ p.score }}<small>/100 fit</small></div>
+    <div>
+      <a class="job" href="/p/{{ p.id }}">{{ p.title }}</a>
+      {# ponytail: only what's stored; location, mode, salary, language join when the parser extracts them #}
+      <div class="meta">{{ p.company }} · added {{ p.created_at.strftime("%d.%m") }}</div>
+      <p class="checks">
+        {%- for m in p.result.met[:3] %}<span class="ok">✓ {{ m.requirement }}</span><br>{% endfor %}
+        {%- for m in p.result.missing[:3] %}<span class="no">✗ {{ m.requirement }}</span><br>{% endfor %}
+      </p>
+    </div>
+    <div>{% if p.stale %}<span class="stale">stale · rescore</span>{% endif %}</div>
+  </li>
   {% endfor %}
-</table>
-<p class="muted">Tokens so far: {{ usage.input_tokens + usage.cache_creation_input_tokens + usage.cache_read_input_tokens }} in, {{ usage.output_tokens }} out.</p>
-</html>
+</ul>
+{% else %}
+<div class="bench"><div class="pic"><img src="/static/img/bench.png" alt="" onerror="this.parentNode.classList.add('halftone'); this.remove()"></div><p>Your move, chief.</p></div>
+{% endif %}
+{% endblock %}

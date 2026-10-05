@@ -9,6 +9,7 @@ import uvicorn
 import yaml
 from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.orm.attributes import flag_modified
@@ -31,6 +32,7 @@ async def lifespan(_):
 app = FastAPI(lifespan=lifespan)
 client = anthropic.Anthropic(api_key=settings.anthropic_api_key.get_secret_value())
 pages = Jinja2Templates(directory=Path(__file__).parent / "templates")
+app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 
 
 @app.middleware("http")

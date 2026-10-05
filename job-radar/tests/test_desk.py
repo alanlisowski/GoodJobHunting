@@ -9,7 +9,7 @@ def test_desk_pages(api, monkeypatch):
     monkeypatch.setattr(main, "score", lambda *a: (Score(
         title="Python Dev", company="Acme", score=77, met=[Met(requirement="FastAPI", evidence_from_profile="job-radar")],
         missing=[], dealbreakers_hit=[], verdict="Apply."), RAW))
-    assert "Nothing yet" in api.get("/").text
+    assert "Your move, chief." in api.get("/").text
     api.post("/postings", json={"text": TEXT})
 
     assert "Python Dev" in api.get("/").text
