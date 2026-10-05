@@ -11,6 +11,7 @@ from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request, Re
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, ValidationError
+from sqlalchemy.orm.attributes import flag_modified
 from sqlmodel import Session, SQLModel, col, select
 
 from app import drafting, models, profile
@@ -125,6 +126,25 @@ def rescore(posting_id: int) -> dict:
         if not (posting := db.get(Posting, posting_id)):
             raise HTTPException(404)
         posting.sqlmodel_update(scored(posting.text))  # 502 leaves the old score untouched
+        db.add(posting)
+        db.commit()
+        db.refresh(posting)
+        return out(posting)
+
+
+@app.post("/postings/{posting_id}/missing/{n}")
+def flip_severity(posting_id: int, n: int) -> dict:
+    """Overrule the model: blocker <-> minor. A rescore overwrites it."""
+    # ponytail: score number untouched; recompute it if overrides should move the ranking.
+    with Session(models.engine) as db:
+        if not (posting := db.get(Posting, posting_id)):
+            raise HTTPException(404)
+        missing = posting.result["missing"]
+        if not 0 <= n < len(missing):
+            raise HTTPException(404, f"missing item {n} not found")
+        m = missing[n]
+        m["severity"] = "minor" if m["severity"] == "blocker" else "blocker"
+        flag_modified(posting, "result")  # JSON columns miss in-place edits
         db.add(posting)
         db.commit()
         db.refresh(posting)
