@@ -1,3 +1,4 @@
+import secrets
 from contextlib import asynccontextmanager
 from datetime import date
 from pathlib import Path
@@ -6,7 +7,7 @@ from urllib.parse import urlsplit
 import anthropic
 import uvicorn
 import yaml
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, ValidationError
@@ -34,15 +35,21 @@ pages = Jinja2Templates(directory=Path(__file__).parent / "templates")
 @app.middleware("http")
 async def no_cross_site_posts(request: Request, call_next):
     # Browsers send Origin on cross-site POSTs. Body-less POSTs (score, draft) would otherwise be
-    # a free CSRF that spends API credit. ponytail: the M8 extension (chrome-extension:// origin) needs its token check here.
+    # a free CSRF that spends API credit. /capture is exempt: the extension's origin is
+    # chrome-extension://, and the endpoint checks X-Capture-Token itself.
     origin = request.headers.get("origin")
-    if request.method == "POST" and origin and urlsplit(origin).hostname not in ("127.0.0.1", "localhost"):
+    if (request.method == "POST" and origin and request.url.path != "/capture"
+            and urlsplit(origin).hostname not in ("127.0.0.1", "localhost")):
         return Response("cross-site POST refused", status_code=403)
     return await call_next(request)
 
 
 class PostingIn(BaseModel):
     text: str = Field(min_length=50, max_length=50_000)
+
+
+class CaptureIn(PostingIn):
+    url: str = Field(max_length=2000)
 
 
 class AnswerIn(BaseModel):
@@ -90,12 +97,26 @@ def get_profile() -> profile.Profile:
 # website can't fire a no-preflight form POST here and spend API credit.
 @app.post("/postings", status_code=201)
 def create_posting(p: PostingIn) -> dict:
-    posting = Posting(text=p.text, **scored(p.text))
+    return out(save(p.text))
+
+
+def save(text: str) -> Posting:
+    posting = Posting(text=text, **scored(text))
     with Session(models.engine) as db:
         db.add(posting)
         db.commit()
         db.refresh(posting)
-        return out(posting)
+        return posting
+
+
+@app.post("/capture", status_code=202)
+def capture(c: CaptureIn, tasks: BackgroundTasks, x_capture_token: str = Header("")) -> dict:
+    """The extension's button. Answers at once: the MV3 worker may die before scoring ends."""
+    if not secrets.compare_digest(x_capture_token.encode(), settings.capture_token.get_secret_value().encode()):
+        raise HTTPException(401, "bad X-Capture-Token: set it in the extension's options")
+    # ponytail: URL kept as the text's first line, no column; a failed score only reaches the server log.
+    tasks.add_task(save, f"Source: {c.url}\n\n{c.text}")
+    return {"queued": c.url}
 
 
 @app.post("/postings/{posting_id}/score")

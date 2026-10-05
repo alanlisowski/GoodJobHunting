@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Job Radar capture",
+  "version": "1.0",
+  "description": "One click: send this job posting to Job Radar on 127.0.0.1:8000.",
+  "action": {"default_title": "Send this posting to Job Radar"},
+  "background": {"service_worker": "background.js"},
+  "options_page": "options.html",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["http://127.0.0.1:8000/*"]
+}
