@@ -53,6 +53,10 @@ class CaptureIn(PostingIn):
     url: str = Field(max_length=2000)
 
 
+class NoteIn(BaseModel):
+    note: str = Field(max_length=5000)  # empty clears it
+
+
 class AnswerIn(BaseModel):
     answer: str = Field(min_length=1, max_length=2000)
 
@@ -125,7 +129,10 @@ def rescore(posting_id: int) -> dict:
     with Session(models.engine) as db:
         if not (posting := db.get(Posting, posting_id)):
             raise HTTPException(404)
+        note = posting.result.get("note")
         posting.sqlmodel_update(scored(posting.text))  # 502 leaves the old score untouched
+        if note:
+            posting.result["note"] = note  # fresh dict from scored(): no flag_modified needed
         db.add(posting)
         db.commit()
         db.refresh(posting)
@@ -145,6 +152,21 @@ def flip_severity(posting_id: int, n: int) -> dict:
         m = missing[n]
         m["severity"] = "minor" if m["severity"] == "blocker" else "blocker"
         flag_modified(posting, "result")  # JSON columns miss in-place edits
+        db.add(posting)
+        db.commit()
+        db.refresh(posting)
+        return out(posting)
+
+
+@app.post("/postings/{posting_id}/note")
+def save_note(posting_id: int, n: NoteIn) -> dict:
+    """Your comments on the scoring; the next draft follows them."""
+    # ponytail: lives in result JSON to dodge a migration; give it a column once Alembic exists.
+    with Session(models.engine) as db:
+        if not (posting := db.get(Posting, posting_id)):
+            raise HTTPException(404)
+        posting.result["note"] = n.note.strip()
+        flag_modified(posting, "result")
         db.add(posting)
         db.commit()
         db.refresh(posting)
@@ -194,7 +216,9 @@ def create_draft(posting_id: int) -> dict:
         if not (posting := db.get(Posting, posting_id)):
             raise HTTPException(404)
         try:
-            t, r = drafting.tailor(posting.text, facts, client)
+            note = posting.result.get("note")
+            text = f"{posting.text}\n\n<notes>\n{note}\n</notes>" if note else posting.text
+            t, r = drafting.tailor(text, facts, client)
         except (ValueError, RuntimeError, anthropic.APIError) as e:
             raise HTTPException(502, f"drafting failed: {e}") from e
         d = Draft(posting_id=posting_id, data=t.model_dump(), raw=r.model_dump_json(),

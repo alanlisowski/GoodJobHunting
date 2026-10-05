@@ -22,6 +22,13 @@
 <ul>{% for x in p.result.dealbreakers_hit %}<li>{{ x }}</li>{% endfor %}</ul>
 {% endif %}
 
+<h2>Your notes</h2>
+<form onsubmit="event.preventDefault(); post(this.querySelector('button'), '/postings/{{ p.id }}/note', {note: this.note.value})">
+  <label for="note" class="muted">Comments on the scoring. The next draft follows them; Rescore keeps them.</label>
+  <textarea id="note" name="note" rows="3">{{ p.result.note or "" }}</textarea>
+  <button>Save notes</button>
+</form>
+
 <h2>Draft</h2>
 {% if d %}
 <p><a href="/postings/{{ p.id }}/cv.pdf">CV (PDF)</a> · <a href="/postings/{{ p.id }}/letter.pdf">Letter (PDF)</a>

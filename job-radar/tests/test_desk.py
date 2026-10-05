@@ -34,3 +34,19 @@ def test_flip_blocker(api, monkeypatch):
     assert api.get("/postings/1").json()["result"]["missing"][0]["severity"] == "minor"  # persisted
     assert api.post("/postings/1/missing/0").json()["result"]["missing"][0]["severity"] == "blocker"
     assert api.post("/postings/1/missing/5").status_code == 404
+
+
+def test_note_reaches_draft_and_survives_rescore(api, monkeypatch):
+    monkeypatch.setattr(main, "score", lambda *a: (Score(
+        title="Python Dev", company="Acme", score=40, met=[], missing=[], dealbreakers_hit=[], verdict="Skip."), RAW))
+    api.post("/postings", json={"text": TEXT})
+    assert api.post("/postings/1/note", json={"note": " I used Java at uni. "}).json()["result"]["note"] == "I used Java at uni."
+    assert "I used Java at uni." in api.get("/p/1").text
+
+    api.post("/postings/1/score")
+    assert api.get("/postings/1").json()["result"]["note"] == "I used Java at uni."
+
+    seen = []
+    monkeypatch.setattr(main.drafting, "tailor", lambda text, *a: seen.append(text) or (_ for _ in ()).throw(ValueError("stop")))
+    api.post("/postings/1/draft")
+    assert seen[0].endswith("<notes>\nI used Java at uni.\n</notes>")

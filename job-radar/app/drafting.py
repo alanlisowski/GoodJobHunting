@@ -10,6 +10,8 @@ MODEL = "claude-opus-5-5"
 RULES = """You tailor a candidate's CV and cover letter to one job posting.
 The facts are the only truth: profile.yaml (constraints), cv_*.yaml (their real CVs),
 profile_additions.yaml (their answers to earlier questions; an answer may say they lack something).
+<notes> at the end of the posting, if present, are the candidate's own comments on this posting: follow
+them, and treat what they say about themselves as facts.
 
 - Write in the posting's language: pl or en. Start from the CV in that language and keep its
   wording where it fits. Reorder and select projects, skills and bullets so the most relevant come
