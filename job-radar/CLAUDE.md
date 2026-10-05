@@ -17,7 +17,7 @@ Full plan: `../job-radar-plan.md`. The decisions below are settled. Don't reopen
 - Model calls: Anthropic SDK, **forced tool use with a JSON schema**, validated by Pydantic.
   A cheap model for scoring, a stronger one for drafting.
 - PDFs: Jinja2 HTML → Playwright sync Chromium `page.pdf()`, one A4 page.
-- UI: Jinja2 + HTMX. No SPA.
+- UI: Jinja2 pages + a ~10-line `fetch()` helper calling the JSON endpoints (`templates/_desk.html`). No SPA, no HTMX.
 - Profile: hand-edited `profile.yaml`, validated by Pydantic at startup, gitignored.
   `profile.example.yaml` (fake data) is committed.
 - Never auto-send or auto-submit anything. Drafts flag gaps and the user answers them.

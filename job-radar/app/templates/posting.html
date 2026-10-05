@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>{{ p.title }}</title>
+{% include "_desk.html" %}
+
+<p><a href="/">← All postings</a></p>
+<h1>{{ p.title }}</h1>
+<p class="muted">{{ p.company }} · score <b>{{ p.score }}</b> · {{ p.model }}
+  {% if p.stale %}<span class="stale">stale: profile changed</span>{% endif %}
+  <button onclick="post(this, '/postings/{{ p.id }}/score')">Rescore</button></p>
+<p>{{ p.verdict }}</p>
+<p id="err" role="alert"></p>
+
+<h2>Met</h2>
+<ul>{% for m in p.result.met %}<li>{{ m.requirement }} <span class="muted">({{ m.evidence_from_profile }})</span></li>{% else %}<li class="muted">None</li>{% endfor %}</ul>
+<h2>Missing</h2>
+<ul>{% for m in p.result.missing %}<li>{% if m.severity == "blocker" %}<b>Blocker:</b> {% endif %}{{ m.requirement }}</li>{% else %}<li class="muted">None</li>{% endfor %}</ul>
+{% if p.result.dealbreakers_hit %}
+<h2>Dealbreakers hit</h2>
+<ul>{% for x in p.result.dealbreakers_hit %}<li>{{ x }}</li>{% endfor %}</ul>
+{% endif %}
+
+<h2>Draft</h2>
+{% if d %}
+<p><a href="/postings/{{ p.id }}/cv.pdf">CV (PDF)</a> · <a href="/postings/{{ p.id }}/letter.pdf">Letter (PDF)</a>
+  <span class="muted">{{ d.data.lang }}, {{ d.created_at.strftime("%d.%m %H:%M") }}</span>
+  {% if d.stale %}<span class="stale">stale: redraft to use your answers</span>{% endif %}</p>
+{% for g in d.data.gaps %}
+  {% if g.question in answered %}
+  <p class="muted">Answered: {{ g.requirement }}</p>
+  {% else %}
+  <form onsubmit="event.preventDefault(); post(this.querySelector('button'), '/postings/{{ p.id }}/gaps/{{ loop.index0 }}', {answer: this.answer.value})">
+    <label for="gap{{ loop.index0 }}"><b>{{ g.requirement }}</b><br>{{ g.question }}</label>
+    <textarea id="gap{{ loop.index0 }}" name="answer" rows="2" required></textarea>
+    <button>Save answer</button>
+  </form>
+  {% endif %}
+{% endfor %}
+<button onclick="post(this, '/postings/{{ p.id }}/draft')">Redraft</button>
+{% else %}
+<button onclick="post(this, '/postings/{{ p.id }}/draft')">Draft CV and letter</button>
+{% endif %}
+<span class="muted">Uses the drafting model. Answer the gaps first.</span>
+
+<details><summary>Posting text</summary><pre>{{ p.text }}</pre></details>
+</html>

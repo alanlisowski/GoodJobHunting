@@ -1,10 +1,14 @@
 from contextlib import asynccontextmanager
 from datetime import date
+from pathlib import Path
+from urllib.parse import urlsplit
 
 import anthropic
 import uvicorn
 import yaml
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, ValidationError
 from sqlmodel import Session, SQLModel, col, select
 
@@ -24,6 +28,17 @@ async def lifespan(_):
 
 app = FastAPI(lifespan=lifespan)
 client = anthropic.Anthropic(api_key=settings.anthropic_api_key.get_secret_value())
+pages = Jinja2Templates(directory=Path(__file__).parent / "templates")
+
+
+@app.middleware("http")
+async def no_cross_site_posts(request: Request, call_next):
+    # Browsers send Origin on cross-site POSTs. Body-less POSTs (score, draft) would otherwise be
+    # a free CSRF that spends API credit. ponytail: the M8 extension (chrome-extension:// origin) needs its token check here.
+    origin = request.headers.get("origin")
+    if request.method == "POST" and origin and urlsplit(origin).hostname not in ("127.0.0.1", "localhost"):
+        return Response("cross-site POST refused", status_code=403)
+    return await call_next(request)
 
 
 class PostingIn(BaseModel):
@@ -191,6 +206,23 @@ def cv_pdf(posting_id: int) -> Response:
 @app.get("/postings/{posting_id}/letter.pdf")
 def letter_pdf(posting_id: int) -> Response:
     return pdf(posting_id, "letter.html")
+
+
+@app.get("/", response_class=HTMLResponse)
+def desk(request: Request):
+    return pages.TemplateResponse(request, "desk.html", {"postings": list_postings(), "usage": usage()})
+
+
+@app.get("/p/{posting_id}", response_class=HTMLResponse)
+def posting_page(request: Request, posting_id: int):
+    p = get_posting(posting_id)
+    try:
+        d = get_draft(posting_id)
+    except HTTPException:
+        d = None
+    additions = Path(profile.ADDITIONS)
+    answered = {a["question"] for a in yaml.safe_load(additions.read_text(encoding="utf-8")) or []} if additions.exists() else set()
+    return pages.TemplateResponse(request, "posting.html", {"p": p, "d": d, "answered": answered})
 
 
 if __name__ == "__main__":

@@ -1,0 +1,24 @@
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; max-width: 860px; margin: 0 auto; padding: 16px; color: #222; }
+  table { width: 100%; border-collapse: collapse; }
+  td, th { padding: 6px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
+  textarea { width: 100%; box-sizing: border-box; font: inherit; }
+  pre { white-space: pre-wrap; }
+  form { margin: 0 0 14px; }
+  .score { font-weight: bold; text-align: right; }
+  .stale { background: #fde68a; padding: 0 6px; border-radius: 4px; font-size: 12px; }
+  .muted { color: #666; font-size: 13px; }
+  [role=alert] { color: #b91c1c; }
+</style>
+<script>
+  // JSON on purpose: another site can't send it without a CORS preflight, which we never allow.
+  async function post(button, url, body, then) {
+    const label = button.textContent;
+    button.disabled = true; button.textContent = "Working…";
+    const r = await fetch(url, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body ?? {})});
+    if (r.ok) return then ? then(await r.json()) : location.reload();
+    button.disabled = false; button.textContent = label;
+    document.getElementById("err").textContent = `${r.status}: ${(await r.text()).slice(0, 500)}`;
+  }
+</script>
