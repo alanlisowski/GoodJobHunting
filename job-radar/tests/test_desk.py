@@ -96,3 +96,22 @@ def test_migrate_adds_status_to_old_db(tmp_path):
     models.migrate(engine)  # second boot is a no-op
     with engine.begin() as c:
         assert c.exec_driver_sql("SELECT status FROM posting").scalar() == "new"
+
+
+def test_delete(api, monkeypatch):
+    from sqlmodel import Session, select
+
+    from app.models import Draft
+    pid = add(api, monkeypatch, "Python Dev", "Acme")
+    keep = add(api, monkeypatch, "Java Dev", "Globex")
+    with Session(models.engine) as db:
+        db.add(Draft(posting_id=pid, data={}, raw="", usage={}, model="m", profile_hash="h"))
+        db.commit()
+    assert "Delete" in api.get("/").text
+    assert api.post(f"/postings/{pid}/delete").json() == {"deleted": pid}
+    assert api.get(f"/postings/{pid}").status_code == 404
+    assert [p["id"] for p in api.get("/postings").json()] == [keep]
+    with Session(models.engine) as db:
+        assert not db.exec(select(Draft)).all()  # no orphaned drafts
+    assert api.post(f"/postings/{pid}/delete").status_code == 404
+    assert api.post(f"/postings/{keep}/delete", headers={"origin": "https://evil.example"}).status_code == 403

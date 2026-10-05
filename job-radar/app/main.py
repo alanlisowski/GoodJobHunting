@@ -181,6 +181,20 @@ def save_note(posting_id: int, n: NoteIn) -> dict:
         return out(posting)
 
 
+# POST, not DELETE: reuses post() and the cross-site POST check.
+@app.post("/postings/{posting_id}/delete")
+def delete_posting(posting_id: int) -> dict:
+    """Gone for good, drafts included. Their token usage leaves the running total too."""
+    with Session(models.engine) as db:
+        if not (posting := db.get(Posting, posting_id)):
+            raise HTTPException(404)
+        for d in db.exec(select(Draft).where(Draft.posting_id == posting_id)):
+            db.delete(d)
+        db.delete(posting)
+        db.commit()
+    return {"deleted": posting_id}
+
+
 @app.post("/postings/{posting_id}/status")
 def set_status(posting_id: int, s: StatusIn) -> dict:
     with Session(models.engine) as db:

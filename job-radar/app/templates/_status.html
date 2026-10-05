@@ -6,3 +6,4 @@
   <select id="status{{ p.id }}" name="status">{% for s in statuses %}<option{% if s == p.status %} selected{% endif %}>{{ s }}</option>{% endfor %}</select>
   <button>Set</button>
 </form>
+<button class="del" onclick="confirm('Delete “{{ p.title | replace("'", "") }}” and its drafts?') && post(this, '/postings/{{ p.id }}/delete', {}, () => location = '/')">Delete</button>
