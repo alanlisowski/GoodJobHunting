@@ -1,7 +1,7 @@
-{# t: advice() in main.py. Rethink reloads the page via post(). #}
+{# t: advice() in main.py. Only the button spends credit; post() reloads, or shows its error in .err. #}
 <section class="titles" aria-labelledby="titles-h">
   <h2 id="titles-h">What do you want to do?</h2>
-  {% if t.error %}<p class="no" role="alert">Couldn't get title advice: {{ t.error }}</p>{% endif %}
+  {% if not t.a %}<p class="meta">No advice yet.</p>{% endif %}
   {% if t.stale %}<p><span class="stale">stale · rethink</span></p>{% endif %}
   {% if t.a %}
   <ul class="title-grid">
@@ -33,5 +33,6 @@
     </div>
     {% endif %}
   </div>
-  <button type="button" onclick="post(this, '/titles/rethink')">Rethink</button>
+  <button type="button" onclick="post(this, '/titles/rethink')">{{ "Rethink" if t.a else "Think it through" }}</button>
+  <p class="err no" role="alert"></p>
 </section>

@@ -21,7 +21,8 @@
     const r = await fetch(url, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body ?? {})});
     if (r.ok) return then ? then(await r.json()) : location.reload();
     button.disabled = false; button.textContent = label;
-    document.getElementById("err").textContent = `${r.status}: ${(await r.text()).slice(0, 500)}`;
+    // A section with its own .err shows its errors there; everything else uses #err.
+    (button.closest("section")?.querySelector(".err") ?? document.getElementById("err")).textContent = `${r.status}: ${(await r.text()).slice(0, 500)}`;
   }
   function setStatus(form, id) {
     post(form.querySelector("button"), `/postings/${id}/status`, {status: form.status.value}, p => {

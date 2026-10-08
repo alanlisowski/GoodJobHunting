@@ -38,12 +38,19 @@ def test_title_without_evidence_rejected():
         Advice.model_validate({**GOOD, "titles": [{**TITLE, "evidence": []}] * 4})
 
 
-def test_cached_per_profile_then_stale(api, monkeypatch):
+def test_only_post_calls_the_model(api, monkeypatch):
     fake = FakeClient(GOOD, GOOD)
     monkeypatch.setattr(main, "client", fake)
+    for url in ("/titles", "/titles?partial=1", "/"):
+        page = api.get(url).text
+        assert "No advice yet." in page and "Think it through" in page
+    assert fake.calls == 0
+
+    assert api.post("/titles/rethink").status_code == 200
+    assert fake.calls == 1
     assert "Programista Python" in api.get("/titles").text
     assert "Programista Python" in api.get("/").text
-    assert fake.calls == 1  # same profile_hash: no second call
+    assert fake.calls == 1  # stored advice is reused
 
     with open("profile.yaml", "a", encoding="utf-8") as f:
         f.write("\n# edited\n")
@@ -55,8 +62,8 @@ def test_cached_per_profile_then_stale(api, monkeypatch):
 
 
 def test_model_failure_stores_nothing(api):
-    assert "Couldn't get title advice" in api.get("/titles").text  # conftest's client always fails
-    assert api.post("/titles/rethink").status_code == 502
+    assert api.post("/titles/rethink").status_code == 502  # conftest's client always fails
+    assert "No advice yet." in api.get("/titles").text
 
 
 def test_families():
@@ -66,5 +73,9 @@ def test_families():
     assert family("Tester automatyczny") == "qa/test"
     assert family("Inżynier danych") == "data"
     assert family("Office Manager") == "other"
-    assert desk([("Python Dev", 80), ("Django Dev", 60), ("Java Dev", 90)]) == [
+    assert family("Software Engineer", ["3+ years of Python", "FastAPI"]) == "python/backend"
+    assert family("Software Engineer", ["Kotlin", "Python"]) == "java/jvm"  # FAMILIES order, not tech order
+    assert family("Software Engineer", ["Communication", "Agile"]) == "other"
+    assert family("Software Engineer") == "other"
+    assert desk([("Python Dev", [], 80), ("Software Engineer", ["Django"], 60), ("Java Dev", [], 90)]) == [
         {"family": "java/jvm", "count": 1, "avg": 90}, {"family": "python/backend", "count": 2, "avg": 70}]

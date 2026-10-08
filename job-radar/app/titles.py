@@ -49,16 +49,22 @@ FAMILIES = {
 }
 
 
-def family(title: str) -> str:
-    t = re.sub(r"[\W_]+", " ", title.casefold())  # "Full-Stack" -> "full stack"; keeps Polish letters
-    return next((f for f, kw in FAMILIES.items() if re.search(rf"\b(?:{kw})\b", t)), "other")
+def matching(text: str) -> str | None:
+    t = re.sub(r"[\W_]+", " ", text.casefold())  # "Full-Stack" -> "full stack"; keeps Polish letters
+    return next((f for f, kw in FAMILIES.items() if re.search(rf"\b(?:{kw})\b", t)), None)
 
 
-def desk(postings: list[tuple[str, int]]) -> list[dict]:
-    """(title, score) pairs -> count and average fit per family, best average first."""
+def family(title: str, tech: list[str] = ()) -> str:
+    """By title; a keyword-less title ("Software Engineer") falls back to its tech, then "other"."""
+    # ponytail: first family in FAMILIES order wins, so "unit tests" in tech pulls a vague title into qa/test.
+    return matching(title) or next((f for f in FAMILIES if any(matching(x) == f for x in tech)), "other")
+
+
+def desk(postings: list[tuple[str, list[str], int]]) -> list[dict]:
+    """(title, tech, score) triples -> count and average fit per family, best average first."""
     fams: dict[str, list[int]] = {}
-    for title, score in postings:
-        fams.setdefault(family(title), []).append(score)
+    for title, tech, score in postings:
+        fams.setdefault(family(title, tech), []).append(score)
     rows = [{"family": f, "count": len(s), "avg": round(sum(s) / len(s))} for f, s in fams.items()]
     return sorted(rows, key=lambda r: -r["avg"])
 

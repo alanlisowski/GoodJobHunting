@@ -324,16 +324,16 @@ def desk(request: Request, status: Status | None = None, q: str = ""):
 
 
 def advice(rethink: bool = False) -> dict:
-    """The newest TitleAdvice. Asks the model only when there is none yet, or on Rethink."""
-    # ponytail: a changed profile shows "stale" instead of auto-calling; Rethink is the one paid trigger.
+    """The newest TitleAdvice. Only POST /titles/rethink calls the model: a GET never spends credit."""
     _, facts, profile_hash = current_profile()
     with Session(models.engine) as db:
-        table = titles.desk([*db.exec(select(Posting.title, Posting.score))])
+        rows = db.exec(select(Posting.title, Posting.result, Posting.score))
+        # ponytail: the scorer's requirements stand in for a tech list; add a required_tech field if they mislead.
+        table = titles.desk([(t, [m["requirement"] for m in r["met"] + r["missing"]], s) for t, r, s in rows])
         if sum(r["count"] for r in table) < 3:
             table = []  # too few postings to say anything
         a = db.exec(select(TitleAdvice).order_by(col(TitleAdvice.id).desc())).first()
-        error = None
-        if rethink or not a:
+        if rethink:
             try:
                 adv, r = titles.advise(facts, table, client)
                 a = TitleAdvice(profile_hash=profile_hash, model=titles.MODEL, payload=adv.model_dump(),
@@ -342,11 +342,8 @@ def advice(rethink: bool = False) -> dict:
                 db.commit()
                 db.refresh(a)
             except (ValueError, RuntimeError, anthropic.APIError) as e:
-                if rethink:
-                    raise HTTPException(502, f"title advice failed: {e}") from e
-                error = str(e)
-        return {"a": a and a.payload, "stale": bool(a) and a.profile_hash != profile_hash,
-                "desk": table, "error": error}
+                raise HTTPException(502, f"title advice failed: {e}") from e
+        return {"a": a and a.payload, "stale": bool(a) and a.profile_hash != profile_hash, "desk": table}
 
 
 @app.get("/titles", response_class=HTMLResponse)
