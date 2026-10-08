@@ -13,12 +13,13 @@
 
 {% block body %}
 <p class="aim">
-  {%- if t.a %}
   <span class="aim-h">Aim for</span>
+  {%- if t.a %}
   <b>{{ t.a.aim_for[:3] | map(attribute="title_en") | join(" · ") }}</b>
   <a class="aim-more" href="/titles">Why these? →</a>
   {%- else %}
-  <a href="/titles">Not sure what to aim for? Find out →</a>
+  <i class="aim-q">Not sure yet, chief?</i>
+  <a class="aim-more" href="/titles">Find out →</a>
   {%- endif %}
 </p>
 <hr class="rule">

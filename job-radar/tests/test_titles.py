@@ -53,7 +53,7 @@ def test_bad_shape_retried_once():
 def test_only_post_calls_the_model(api, monkeypatch):
     fake = FakeClient(GOOD, GOOD)
     monkeypatch.setattr(main, "client", fake)
-    assert "Not sure what to aim for? Find out →" in api.get("/").text
+    assert "Not sure yet, chief?" in api.get("/").text
     page = api.get("/titles").text
     assert "Think it through" in page and "Not these" not in page
     assert fake.calls == 0
