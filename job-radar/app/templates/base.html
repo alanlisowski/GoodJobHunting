@@ -5,6 +5,15 @@
 <title>{% block title %}Good Job Hunting{% endblock %}</title>
 <link rel="stylesheet" href="/static/css/theme.css">
 <script>
+  // Set before first paint so a saved choice never flashes the other theme. try: storage can be blocked.
+  try { const t = localStorage.theme; if (t) document.documentElement.dataset.theme = t; } catch {}
+  function toggleTheme() {
+    const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    const now = document.documentElement.dataset.theme || (dark ? "dark" : "light");
+    const next = now == "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    try { localStorage.theme = next; } catch {}
+  }
   // JSON on purpose: another site can't send it without a CORS preflight, which we never allow.
   async function post(button, url, body, then) {
     const label = button.textContent;
@@ -38,4 +47,5 @@
 {% endblock %}
 <main>{% block body %}{% endblock %}</main>
 <p id="toast" class="toast" role="status"></p>
+<button class="theme-toggle" type="button" onclick="toggleTheme()" aria-label="Switch light or dark theme">Light / Dark</button>
 </html>

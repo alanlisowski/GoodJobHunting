@@ -13,12 +13,20 @@
   --mono: "Courier Prime", "Courier New", monospace;
   color-scheme: light dark;
 }
+/* Dark palette twice: once for the OS setting, once for the toggle's explicit choice. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --paper: #1f2b24; --paper-2: #27352d; --ink: #ece6d6; --ink-soft: #b9b29e; --sepia: #d9a560;
     --title: #8fb8ea; --good: #a9c77a; --warn: #e3a95a; --bad: #e58a72;
   }
 }
+:root[data-theme="dark"] {
+  --paper: #1f2b24; --paper-2: #27352d; --ink: #ece6d6; --ink-soft: #b9b29e; --sepia: #d9a560;
+  --title: #8fb8ea; --good: #a9c77a; --warn: #e3a95a; --bad: #e58a72;
+  color-scheme: dark;
+}
+:root[data-theme="light"] { color-scheme: light; }
+.theme-toggle { position: fixed; top: 8px; right: 8px; font-size: 12px; padding: 2px 8px; margin: 0; z-index: 1; }
 
 * { box-sizing: border-box; border-radius: 0; }
 body { background: var(--paper); color: var(--ink); font: 16px/1.5 var(--body);
