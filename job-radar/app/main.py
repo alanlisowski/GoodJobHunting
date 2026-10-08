@@ -323,8 +323,26 @@ def desk(request: Request, status: Status | None = None, q: str = ""):
         "t": advice(), "postings": list_postings(status, q), "usage": usage(), "status": status, "q": q, "statuses": get_args(Status)})
 
 
-def advice(rethink: bool = False) -> dict:
-    """The newest TitleAdvice. Only POST /titles/rethink calls the model: a GET never spends credit."""
+def advice() -> dict:
+    """The newest TitleAdvice for the page and the desk strip. Never calls the model."""
+    with Session(models.engine) as db:
+        a = db.exec(select(TitleAdvice).order_by(col(TitleAdvice.id).desc())).first()
+        if not a or "aim_for" not in a.payload:  # ponytail: rows from the older schema count as none
+            return {"a": None}
+        # vN: the Nth profile version that got advice.
+        hashes = list(dict.fromkeys(db.exec(select(TitleAdvice.profile_hash).order_by(col(TitleAdvice.id)))))
+        return {"a": a.payload, "stale": a.profile_hash != current_profile()[2],
+                "version": hashes.index(a.profile_hash) + 1, "date": a.created_at.strftime("%d.%m.%Y")}
+
+
+@app.get("/titles", response_class=HTMLResponse)
+def titles_page(request: Request):
+    return pages.TemplateResponse(request, "titles.html", {"t": advice()})
+
+
+@app.post("/titles/rethink")
+def rethink() -> dict:
+    """The only paid path to title advice: POST, behind the cross-site check."""
     _, facts, profile_hash = current_profile()
     with Session(models.engine) as db:
         rows = db.exec(select(Posting.title, Posting.result, Posting.score))
@@ -332,29 +350,14 @@ def advice(rethink: bool = False) -> dict:
         table = titles.desk([(t, [m["requirement"] for m in r["met"] + r["missing"]], s) for t, r, s in rows])
         if sum(r["count"] for r in table) < 3:
             table = []  # too few postings to say anything
-        a = db.exec(select(TitleAdvice).order_by(col(TitleAdvice.id).desc())).first()
-        if rethink:
-            try:
-                adv, r = titles.advise(facts, table, client)
-                a = TitleAdvice(profile_hash=profile_hash, model=titles.MODEL, payload=adv.model_dump(),
-                                raw_response=r.model_dump_json(), usage=r.usage.model_dump())
-                db.add(a)
-                db.commit()
-                db.refresh(a)
-            except (ValueError, RuntimeError, anthropic.APIError) as e:
-                raise HTTPException(502, f"title advice failed: {e}") from e
-        return {"a": a and a.payload, "stale": bool(a) and a.profile_hash != profile_hash, "desk": table}
-
-
-@app.get("/titles", response_class=HTMLResponse)
-def titles_page(request: Request, partial: bool = False):
-    """The section alone (?partial=1) or as a page."""
-    return pages.TemplateResponse(request, "_titles.html" if partial else "titles.html", {"t": advice()})
-
-
-@app.post("/titles/rethink", response_class=HTMLResponse)
-def rethink(request: Request):
-    return pages.TemplateResponse(request, "_titles.html", {"t": advice(rethink=True)})
+        try:
+            adv, r = titles.advise(facts, table, client)
+        except (ValueError, RuntimeError, anthropic.APIError) as e:
+            raise HTTPException(502, f"title advice failed: {e}") from e
+        db.add(TitleAdvice(profile_hash=profile_hash, model=titles.MODEL, payload=adv.model_dump(),
+                           raw_response=r.model_dump_json(), usage=r.usage.model_dump()))
+        db.commit()
+    return adv.model_dump()
 
 
 @app.get("/p/{posting_id}", response_class=HTMLResponse)

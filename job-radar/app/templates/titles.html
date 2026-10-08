@@ -1,3 +1,24 @@
 {% extends "base.html" %}
 {% block title %}What do you want to do? · Good Job Hunting{% endblock %}
-{% block body %}{% include "_titles.html" %}{% endblock %}
+{% block body %}
+<h1 class="titles-h">What do you want to do?</h1>
+<p class="quote">Three titles your facts back up, a few to leave for later, and what to type into the boards.</p>
+{% if t.a %}
+{% if t.stale %}<p><span class="stale">stale · rethink</span></p>{% endif %}
+<h2>Aim for</h2>
+<ul class="why">
+  {% for x in t.a.aim_for %}<li><span class="ok">✓</span> <b>{{ x.title_en }}</b> <span class="meta">{{ x.title_pl }}</span><br>{{ x.why }}</li>{% endfor %}
+</ul>
+<h2>Not these, for now</h2>
+<ul class="why">
+  {% for x in t.a.not_these %}<li><span class="no">✗</span> <b>{{ x.title_en }}</b><br>{{ x.why_not }}</li>{% endfor %}
+</ul>
+<h2>Type this into the boards</h2>
+<p>{% for s in t.a.search_terms %}<button type="button" class="term" title="Copy" onclick="navigator.clipboard.writeText(this.textContent)">{{ s }}</button>{% endfor %}</p>
+<p class="aim-foot"><span class="meta">Based on profile v{{ t.version }} · {{ t.date }}</span>
+  <button type="button" onclick="post(this, '/titles/rethink')">Rethink</button></p>
+{% else %}
+<button type="button" onclick="post(this, '/titles/rethink')">Think it through</button>
+{% endif %}
+<p id="err" class="no" role="alert"></p>
+{% endblock %}

@@ -1,4 +1,4 @@
-"""What do you want to do? Job titles that fit the facts, and what to type into the boards."""
+"""What do you want to do? Titles to aim for, titles to skip for now, and what to type into the boards."""
 
 import re
 
@@ -7,37 +7,40 @@ from pydantic import BaseModel, Field
 
 from app.scoring import MODEL, ask
 
-RULES = """You advise a job hunter which job titles to search for, given their facts:
+RULES = """You advise a job hunter which job titles to aim for, given their facts:
 profile.yaml (constraints, dealbreakers), cv_*.yaml (their real CVs) and profile_additions.yaml.
-Return 4-6 titles, best fit first. Each title's "why" must cite specific facts (skills, projects,
-experience) and list them in "evidence". A title with no evidence is not allowed: drop it instead.
-"gaps" are what the candidate would still have to close for that title.
-"search_terms" are short strings to type into justjoin.it or pracuj.pl search; give Polish and
-English variants where the boards use both (e.g. "programista python", "python developer").
-"look_for" and "skip" must apply the dealbreakers and work constraints (modes, commute, salary
-floor, relocation) from profile.yaml.
+"aim_for": exactly 3 titles, best fit first. "why" is ONE sentence (max ~25 words) citing specific
+facts (skills, projects, experience); list those facts in "evidence". No evidence, no title.
+"not_these": 2-3 titles people with this background often apply for but shouldn't yet. "why_not" is
+ONE sentence (max ~25 words): the missing skill, dealbreaker or work constraint (modes, commute,
+salary floor, relocation from profile.yaml), and what would change that.
+"search_terms": 4-8 short phrases to type into justjoin.it or pracuj.pl search, Polish and English
+mixed (e.g. "programista python", "python developer").
 If a <desk> table is given, it shows how the candidate's captured postings actually scored per
 title family: let it shift your advice."""
 
 
-class Title(BaseModel):
+class Aim(BaseModel):
     title_en: str
     title_pl: str
-    fit: int = Field(ge=0, le=100)
     why: str
     evidence: list[str] = Field(min_length=1)  # facts it rests on; no evidence, no title
-    gaps: list[str]
-    search_terms: list[str]
+
+
+class NotThis(BaseModel):
+    title_en: str
+    why_not: str
 
 
 class Advice(BaseModel):
-    titles: list[Title] = Field(min_length=4, max_length=6)
-    look_for: list[str]
-    skip: list[str]
+    # ponytail: "one sentence, ~25 words" lives in the prompt only; a word-count validator would burn retries.
+    aim_for: list[Aim] = Field(min_length=3, max_length=3)
+    not_these: list[NotThis] = Field(min_length=2, max_length=3)
+    search_terms: list[str] = Field(min_length=4, max_length=8)
 
 
 # First match wins, so the broad families (frontend, python/backend) go last.
-# ponytail: keyword families; a title like "Software Engineer" lands in other until it earns a keyword.
+# ponytail: keyword families; a title with no keyword falls back to its tech (family()), then "other".
 FAMILIES = {
     "fullstack": r"full ?stack",
     "qa/test": r"qa|test\w*|sdet|quality",

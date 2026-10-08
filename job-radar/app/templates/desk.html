@@ -12,7 +12,15 @@
 {% endblock %}
 
 {% block body %}
-{% include "_titles.html" %}
+<p class="aim">
+  {%- if t.a %}
+  <span class="aim-h">Aim for</span>
+  <b>{{ t.a.aim_for[:3] | map(attribute="title_en") | join(" · ") }}</b>
+  <a class="aim-more" href="/titles">Why these? →</a>
+  {%- else %}
+  <a href="/titles">Not sure what to aim for? Find out →</a>
+  {%- endif %}
+</p>
 <hr class="rule">
 <form onsubmit="event.preventDefault(); post(this.querySelector('button'), '/postings', {text: this.text.value}, p => location = '/p/' + p.id)">
   <label for="text">Paste a posting</label>
