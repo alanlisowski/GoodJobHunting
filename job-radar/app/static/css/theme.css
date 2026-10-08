@@ -131,3 +131,20 @@ select, input[type=search] { font: 14px var(--mono); color: var(--ink); backgrou
 }
 h1 .score { font-size: 1.4em; margin-right: 10px; vertical-align: -0.1em; }
 .checks li { margin-bottom: 4px; }
+
+/* What do you want to do? */
+.titles h2 { color: var(--title); }
+.titles h3 { font: 20px var(--display); text-transform: uppercase; margin: 0 0 8px; }
+.title-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 32px; }
+.title-grid li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; }
+.title-grid p { margin: 6px 0; }
+.t-en { display: block; font-weight: 700; }
+.t-pl { font-family: var(--mono); color: var(--ink-soft); }
+button.term { font: 13px var(--mono); text-transform: none; letter-spacing: 0; padding: 1px 8px; margin: 0 6px 6px 0;
+  background: none; color: var(--ink); border: 1.5px solid var(--ink); }
+button.term:hover { color: var(--title); border-color: var(--title); background: none; }
+.titles-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; margin: 24px 0 16px; }
+.titles table { border-collapse: collapse; font: 14px var(--mono); font-variant-numeric: tabular-nums; }
+.titles th, .titles td { padding: 2px 12px 2px 0; text-align: left; }
+.titles td + td { text-align: right; }
+@media (max-width: 760px) { .title-grid, .titles-row { grid-template-columns: 1fr; } }

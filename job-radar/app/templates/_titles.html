@@ -1,0 +1,37 @@
+{# t: advice() in main.py. Rethink reloads the page via post(). #}
+<section class="titles" aria-labelledby="titles-h">
+  <h2 id="titles-h">What do you want to do?</h2>
+  {% if t.error %}<p class="no" role="alert">Couldn't get title advice: {{ t.error }}</p>{% endif %}
+  {% if t.stale %}<p><span class="stale">stale · rethink</span></p>{% endif %}
+  {% if t.a %}
+  <ul class="title-grid">
+    {% for x in t.a.titles %}
+    <li>
+      <div class="score">{{ x.fit }}</div>
+      <div>
+        <span class="t-en">{{ x.title_en }}</span>
+        <span class="t-pl">{{ x.title_pl }}</span>
+        <p>{{ x.why }}</p>
+        <div>{% for s in x.search_terms %}<button type="button" class="term" title="Copy" onclick="navigator.clipboard.writeText(this.textContent)">{{ s }}</button>{% endfor %}</div>
+        {% for g in x.gaps %}<span class="no">✗ to close: {{ g }}</span><br>{% endfor %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <div class="titles-row">
+    {% if t.a %}
+    <div><h3>Look for</h3>{% for s in t.a.look_for %}<span class="ok">✓ {{ s }}</span><br>{% endfor %}</div>
+    <div><h3>Skip</h3>{% for s in t.a.skip %}<span class="no">✗ {{ s }}</span><br>{% endfor %}</div>
+    {% endif %}
+    {% if t.desk %}
+    <div><h3>From your desk</h3>
+      <table>
+        <tr><th>Family</th><th>Postings</th><th>Avg fit</th></tr>
+        {% for r in t.desk %}<tr><td>{{ r.family }}</td><td>{{ r.count }}</td><td>{{ r.avg }}</td></tr>{% endfor %}
+      </table>
+    </div>
+    {% endif %}
+  </div>
+  <button type="button" onclick="post(this, '/titles/rethink')">Rethink</button>
+</section>

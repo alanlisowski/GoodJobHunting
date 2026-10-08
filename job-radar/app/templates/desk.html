@@ -12,6 +12,7 @@
 {% endblock %}
 
 {% block body %}
+{% include "_titles.html" %}
 <hr class="rule">
 <form onsubmit="event.preventDefault(); post(this.querySelector('button'), '/postings', {text: this.text.value}, p => location = '/p/' + p.id)">
   <label for="text">Paste a posting</label>

@@ -49,3 +49,14 @@ class Draft(SQLModel, table=True):
     model: str
     profile_hash: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+
+class TitleAdvice(SQLModel, table=True):
+    # One row per model call; the newest one is shown. Stale when profile_hash differs.
+    id: int | None = Field(default=None, primary_key=True)
+    profile_hash: str
+    model: str
+    payload: dict = Field(sa_column=Column(JSON))  # titles.Advice
+    raw_response: str
+    usage: dict = Field(sa_column=Column(JSON))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))

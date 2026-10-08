@@ -35,30 +35,30 @@ class Score(BaseModel):
 
 
 def ask[T: BaseModel](client: anthropic.Anthropic, model: str, rules: str, facts: str,
-                      posting: str, schema: type[T]) -> tuple[T, object]:
+                      posting: str, schema: type[T], tag: str = "posting") -> tuple[T, object]:
     """One structured call: validated output and the raw response (for usage + storage)."""
-    for attempt in (1, 2):  # plan: retry once, then give up
-        r = client.messages.parse(
-            model=model,
-            max_tokens=16000,
-            # Facts are identical on every call: cache them.
-            system=[
-                {"type": "text", "text": rules},
-                {"type": "text", "text": f"<facts>\n{facts}\n</facts>",
-                 "cache_control": {"type": "ephemeral"}},
-            ],
-            messages=[{"role": "user", "content": f"<posting>\n{posting}\n</posting>"}],
-            output_format=schema,
-        )
-        if r.stop_reason == "refusal":
-            raise RuntimeError(f"model refused: {r.stop_details}")
+    for _ in (1, 2):  # plan: retry once, then give up
         try:
+            r = client.messages.parse(
+                model=model,
+                max_tokens=16000,
+                # Facts are identical on every call: cache them.
+                system=[
+                    {"type": "text", "text": rules},
+                    {"type": "text", "text": f"<facts>\n{facts}\n</facts>",
+                     "cache_control": {"type": "ephemeral"}},
+                ],
+                messages=[{"role": "user", "content": f"<{tag}>\n{posting}\n</{tag}>"}],
+                output_format=schema,
+            )
+            if r.stop_reason == "refusal":
+                raise RuntimeError(f"model refused: {r.stop_details}")
             if r.parsed_output is not None:
                 return schema.model_validate(r.parsed_output.model_dump()), r
-        except ValidationError:
-            pass
-        if attempt == 2:
-            raise ValueError(f"unparseable {schema.__name__} after retry: {r.content}")
+            err = r.content
+        except ValidationError as e:  # the SDK validates inside parse(): a bad shape raises there
+            err = e
+    raise ValueError(f"unparseable {schema.__name__} after retry: {err}")
 
 
 def score(posting: str, facts: str, client: anthropic.Anthropic) -> tuple[Score, object]:

@@ -16,8 +16,8 @@ from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.orm.attributes import flag_modified
 from sqlmodel import Session, SQLModel, col, select
 
-from app import drafting, models, profile
-from app.models import Draft, Posting, Status
+from app import drafting, models, profile, titles
+from app.models import Draft, Posting, Status, TitleAdvice
 from app.render import render_pdf
 from app.scoring import MODEL, score
 from app.settings import settings
@@ -229,7 +229,7 @@ def usage() -> dict:
     # ponytail: sums in Python over every row; fine for one user's few hundred postings.
     keys = ("input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")
     with Session(models.engine) as db:
-        rows = [*db.exec(select(Posting.usage)), *db.exec(select(Draft.usage))]
+        rows = [*db.exec(select(Posting.usage)), *db.exec(select(Draft.usage)), *db.exec(select(TitleAdvice.usage))]
     return {k: sum(u.get(k) or 0 for u in rows) for k in keys}
 
 
@@ -320,7 +320,44 @@ def letter_pdf(posting_id: int) -> Response:
 @app.get("/", response_class=HTMLResponse)
 def desk(request: Request, status: Status | None = None, q: str = ""):
     return pages.TemplateResponse(request, "desk.html", {
-        "postings": list_postings(status, q), "usage": usage(), "status": status, "q": q, "statuses": get_args(Status)})
+        "t": advice(), "postings": list_postings(status, q), "usage": usage(), "status": status, "q": q, "statuses": get_args(Status)})
+
+
+def advice(rethink: bool = False) -> dict:
+    """The newest TitleAdvice. Asks the model only when there is none yet, or on Rethink."""
+    # ponytail: a changed profile shows "stale" instead of auto-calling; Rethink is the one paid trigger.
+    _, facts, profile_hash = current_profile()
+    with Session(models.engine) as db:
+        table = titles.desk([*db.exec(select(Posting.title, Posting.score))])
+        if sum(r["count"] for r in table) < 3:
+            table = []  # too few postings to say anything
+        a = db.exec(select(TitleAdvice).order_by(col(TitleAdvice.id).desc())).first()
+        error = None
+        if rethink or not a:
+            try:
+                adv, r = titles.advise(facts, table, client)
+                a = TitleAdvice(profile_hash=profile_hash, model=titles.MODEL, payload=adv.model_dump(),
+                                raw_response=r.model_dump_json(), usage=r.usage.model_dump())
+                db.add(a)
+                db.commit()
+                db.refresh(a)
+            except (ValueError, RuntimeError, anthropic.APIError) as e:
+                if rethink:
+                    raise HTTPException(502, f"title advice failed: {e}") from e
+                error = str(e)
+        return {"a": a and a.payload, "stale": bool(a) and a.profile_hash != profile_hash,
+                "desk": table, "error": error}
+
+
+@app.get("/titles", response_class=HTMLResponse)
+def titles_page(request: Request, partial: bool = False):
+    """The section alone (?partial=1) or as a page."""
+    return pages.TemplateResponse(request, "_titles.html" if partial else "titles.html", {"t": advice()})
+
+
+@app.post("/titles/rethink", response_class=HTMLResponse)
+def rethink(request: Request):
+    return pages.TemplateResponse(request, "_titles.html", {"t": advice(rethink=True)})
 
 
 @app.get("/p/{posting_id}", response_class=HTMLResponse)
