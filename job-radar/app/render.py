@@ -16,7 +16,7 @@ env = Environment(loader=FileSystemLoader(APP / "templates"), autoescape=select_
 # Inlined as data URIs: set_content pages can't load file:// fonts, and a missing font
 # silently falls back to a system one that may lack Polish glyphs.
 FONTS = {f.stem: base64.b64encode(f.read_bytes()).decode()
-         for f in (APP / "static" / "fonts").glob("Lato-*.woff2")}  # desk fonts stay out of the PDFs
+         for f in (APP / "static" / "fonts" / "pdf").glob("*.ttf")}  # desk fonts stay out of the PDFs
 
 
 def render_pdf(data: dict, template: str = "cv.html") -> bytes:

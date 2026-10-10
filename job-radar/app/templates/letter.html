@@ -1,25 +1,46 @@
 <!doctype html>
 <html lang="{{ lang }}">
 <meta charset="utf-8">
-{# Data: lang, name, contact (lines of items), city, date, company, letter (body paragraphs). #}
+{# Data: lang, name, headline (role line), contact (lines of items, printed as one line), company, city, date,
+   role (optional, the job title for the "Re:" line), letter (body paragraphs). #}
 {% set h = {
-  "pl": {"to": "Do", "hello": "Szanowni Państwo,", "bye": "Z poważaniem,"},
-  "en": {"to": "To", "hello": "Dear Hiring Team,", "bye": "Kind regards,"},
+  "pl": {"team": "Dział rekrutacji", "re": "Dotyczy", "hello": "Szanowni Państwo,", "bye": "Z poważaniem,",
+         "foot": "list motywacyjny"},
+  "en": {"team": "Hiring team", "re": "Re", "hello": "Dear Hiring Team,", "bye": "Kind regards,",
+         "foot": "cover letter"},
 }[lang] %}
 <style>
   {% include "_fonts.html" %}
-  @page { size: A4; margin: 18mm 20mm; }
-  body { margin: 0; font: 10.5pt/1.5 Lato; color: #222; }
-  h1 { margin: 0; font-size: 20pt; line-height: 1.1; }
-  p { margin: 0 0 9pt; }
-  .muted { color: #555; font-size: 9pt; }
-  .meta { display: flex; justify-content: space-between; margin: 16pt 0 18pt; }
+  .letter-meta { margin-top: 22px; display: flex; justify-content: space-between; gap: 16px; }
+  .letter-meta .to { line-height: 1.5; }
+  .letter-meta .date { font-family: "JetBrains Mono"; font-size: 9.6px; color: #5A534B; }
+  .letter-body { margin-top: 22px; display: grid; gap: 10px; max-width: 64ch; font-size: 11.2px; line-height: 1.6; }
+  .letter-body p { margin: 0; }
+  .re { font-weight: 700; }
+  .sign { margin-top: 16px; display: grid; }
+  .sign .script { font: 30px/1.1 Yellowtail; color: #CB4C34; }
+  .foot { position: absolute; left: 50px; right: 50px; bottom: 30px; padding-top: 8px; border-top: 1px solid #E3DCD2;
+          display: flex; justify-content: space-between; font: 9px "JetBrains Mono"; color: #5A534B; }
 </style>
 
-<h1>{{ name }}</h1>
-{% for line in contact or [] %}<div class="muted">{{ line | join("  |  ") }}</div>{% endfor %}
-<div class="meta"><span>{{ h.to }}: <b>{{ company }}</b></span><span>{{ city }}, {{ date }}</span></div>
-<p>{{ h.hello }}</p>
-{% for para in letter %}<p>{{ para }}</p>{% endfor %}
-<p>{{ h.bye }}<br>{{ name }}</p>
+<div class="mast">
+  <h1 class="name">{{ name }}</h1>
+  {% if headline %}<div class="role">{{ headline }}</div>{% endif %}
+  {% if contact %}<div class="contact">{% for c in contact | sum(start=[]) %}{% if not loop.first %} <i>·</i> {% endif %}{{ c }}{% endfor %}</div>{% endif %}
+</div>
+
+<div class="letter-meta">
+  <div class="to"><b>{{ h.team }}</b>{% if company %}<br>{{ company }}{% endif %}{% if city %}<br>{{ city }}{% endif %}</div>
+  <div class="date">{{ date }}</div>
+</div>
+
+<div class="letter-body">
+  {% if role %}<p class="re">{{ h.re }}: {{ role }}</p>{% endif %}
+  <p>{{ h.hello }}</p>
+  {% for para in letter %}<p>{{ para }}</p>{% endfor %}
+  <p>{{ h.bye }}</p>
+  <div class="sign"><span class="script">{{ name }}</span><span>{{ name }}</span></div>
+</div>
+
+<div class="foot"><span>{{ name | lower }} · {{ h.foot }}</span><span>1 / 1</span></div>
 </html>

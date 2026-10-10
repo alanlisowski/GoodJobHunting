@@ -60,6 +60,6 @@ def tailor(posting: str, facts: str, client: anthropic.Anthropic) -> tuple[Tailo
 
 
 def cv_data(t: dict, base: dict) -> dict:
-    """Template data: name, contact, education, certificates, languages stay as the base CV has them."""
+    """Template data: name, contact, portfolio, education, certificates, languages stay as the base CV has them."""
     return {**base, **{k: t[k] for k in ("lang", "headline", "about", "projects", "experience")},
             "skills": {s["label"]: s["value"] for s in t["skills"]}}

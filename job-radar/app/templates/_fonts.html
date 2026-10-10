@@ -1,8 +1,25 @@
   {# One full font file per weight, not latin/latin-ext subsets: split fonts make PDF text
      extract as "ż arówka", which is what an ATS would read. #}
-  {% for w, f in ((400, "Lato-Regular"), (700, "Lato-Bold")) %}
-  @font-face { font-family: Lato; font-weight: {{ w }};
-    src: url(data:font/woff2;base64,{{ fonts[f] }}) format("woff2"); }
+  {% for family, w, f in (("Anton", 400, "Anton-400"),
+                          ("Space Grotesk", 400, "SpaceGrotesk-400"), ("Space Grotesk", 500, "SpaceGrotesk-500"),
+                          ("Space Grotesk", 700, "SpaceGrotesk-700"),
+                          ("JetBrains Mono", 400, "JetBrainsMono-400"), ("JetBrains Mono", 500, "JetBrainsMono-500"),
+                          ("Yellowtail", 400, "Yellowtail-400")) %}
+  @font-face { font-family: "{{ family }}"; font-weight: {{ w }};
+    src: url(data:font/ttf;base64,{{ fonts[f] }}) format("truetype"); }
   {% endfor %}
   /* No "fi"/"fl" ligatures: they extract as U+FB01, so an ATS search for "certified" misses. */
   * { font-variant-ligatures: none !important; }  /* !important: a later `font:` shorthand resets it */
+  /* The kit's paper (CV1/cv-kit), shared by cv.html and letter.html. Fonts have no system fallback on purpose. */
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  /* ponytail: min-height, not the kit's fixed height + overflow: hidden, so a spill shows as page 2.
+     Bottom padding keeps the pinned GDPR/footer clear of the text. */
+  body { position: relative; margin: 0; min-height: 297mm; padding: 44px 50px 72px;
+         font: 10.6px/1.45 "Space Grotesk"; color: #1F1C19; }
+  a { color: inherit; text-decoration: none; }
+  .mast { display: grid; gap: 4px; padding-bottom: 12px; border-bottom: 3px solid #CB4C34; }
+  .mast .name { margin: 0; font: 400 40px/.95 Anton; letter-spacing: .01em; text-transform: uppercase; }
+  .mast .role { font-weight: 700; font-size: 12.5px; }
+  .mast .contact { font-family: "JetBrains Mono"; font-size: 9.4px; color: #5A534B; }
+  .mast .contact i { font-style: normal; color: #CB4C34; padding: 0 3px; }

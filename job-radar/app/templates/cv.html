@@ -2,62 +2,72 @@
 <html lang="{{ lang }}">
 <meta charset="utf-8">
 {#
-  Data: lang (pl|en), name, headline, contact (lines, each a list of items), about,
-  skills (label: value), projects / experience / education (entries: title, right, text or bullets),
-  certificates, languages. Every section but name is optional.
+  Data: lang (pl|en), name, headline (role line), contact (lines, each a list of items; printed as one line),
+  portfolio (url for the pill), about, skills (label: value), experience / projects / education
+  (entries: title, right, text or bullets), certificates, languages. Every section but name is optional.
 #}
 {% set h = {
   "pl": {"about": "O mnie", "skills": "Umiejętności", "projects": "Projekty", "experience": "Doświadczenie",
-         "education": "Edukacja i certyfikaty", "languages": "Języki obce",
+         "education": "Edukacja i certyfikaty", "languages": "Języki obce", "pill": "Zobacz w akcji",
          "consent": "Wyrażam zgodę na przetwarzanie moich danych osobowych w celu prowadzenia rekrutacji na stanowisko, na które aplikuję, zgodnie z Rozporządzeniem Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. (RODO)."},
   "en": {"about": "About me", "skills": "Skills", "projects": "Projects", "experience": "Experience",
-         "education": "Education and certificates", "languages": "Languages",
+         "education": "Education and certificates", "languages": "Languages", "pill": "See it in motion",
          "consent": "I hereby consent to the processing of my personal data for the purposes of the recruitment process for the position I am applying for, in accordance with Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 (GDPR)."},
 }[lang] %}
 <style>
   {% include "_fonts.html" %}
-  @page { size: A4; margin: 10mm 13mm; }
-  body { margin: 0; font: 8.2pt/1.36 Lato; color: #222; }
-  h1 { margin: 0; font-size: 22pt; line-height: 1.1; }
-  h2 { margin: 7pt 0 3pt; padding-bottom: 1pt; border-bottom: 1px solid #b9c8d8;
-       color: #2d5d8b; font-size: 9.6pt; letter-spacing: .08em; text-transform: uppercase; }
-  p, ul { margin: 0 0 2pt; }
-  ul { padding-left: 12pt; }
-  .headline { color: #2d5d8b; font-size: 11pt; }
-  .muted { color: #555; }
-  .skills { display: grid; grid-template-columns: 32mm 1fr; }
-  .skills dt { font-weight: 700; }
-  .skills dd { margin: 0; }
-  .head { display: flex; justify-content: space-between; gap: 8pt; font-weight: 700; margin-top: 3pt; }
-  .head span { font-weight: 400; color: #555; white-space: nowrap; }
-  .consent { margin-top: 6pt; font-size: 6.5pt; color: #888; }
+  .pill { justify-self: start; margin-top: 4px; padding: 3px 9px; border: 1.5px solid #1F1C19; border-radius: 999px;
+          font-weight: 700; font-size: 10.4px; }
+  .pill b { color: #CB4C34; }
+  .sec { margin-top: 13px; display: grid; gap: 5px; }
+  .sec h2 { margin: 0; display: flex; align-items: center; gap: 7px;
+            font-size: 10.2px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .sec h2::before { content: ""; width: 7px; height: 7px; background: #CB4C34; flex: none; }
+  .sec h2::after { content: ""; flex: 1; height: 1px; background: #E3DCD2; }
+  .sec p { margin: 0; }
+  .skills { display: grid; gap: 1px; }
+  .skills p { display: grid; grid-template-columns: 82px 1fr; }
+  .item { display: grid; gap: 1px; }
+  .item + .item { margin-top: 4px; }
+  .item .hd strong { font-size: 11px; }
+  .item .hd .meta { margin-left: 6px; font-family: "JetBrains Mono"; font-size: 9.2px; color: #5A534B; white-space: nowrap; }
+  .item ul { margin: 1px 0 0; padding-left: 14px; }
+  .gdpr { position: absolute; left: 50px; right: 50px; bottom: 26px; margin: 0;
+          font-size: 7.4px; line-height: 1.35; color: #5A534B; }
 </style>
 
-<h1>{{ name }}</h1>
-{% if headline %}<div class="headline">{{ headline }}</div>{% endif %}
-{% for line in contact or [] %}<div class="muted">{{ line | join("  |  ") }}</div>{% endfor %}
+<div class="mast">
+  <h1 class="name">{{ name }}</h1>
+  {% if headline %}<div class="role">{{ headline }}</div>{% endif %}
+  {% if contact %}<div class="contact">{% for c in contact | sum(start=[]) %}{% if not loop.first %} <i>·</i> {% endif %}{{ c }}{% endfor %}</div>{% endif %}
+  {% if portfolio %}<div class="pill">{{ h.pill }} <b>→</b> {{ portfolio }}</div>{% endif %}
+</div>
 
-{% if about %}<h2>{{ h.about }}</h2><p>{{ about }}</p>{% endif %}
+{% if about %}<section class="sec"><h2>{{ h.about }}</h2><p>{{ about }}</p></section>{% endif %}
 
 {% if skills %}
-<h2>{{ h.skills }}</h2>
-<dl class="skills">{% for k, v in skills.items() %}<dt>{{ k }}:</dt><dd>{{ v }}</dd>{% endfor %}</dl>
+<section class="sec"><h2>{{ h.skills }}</h2>
+<div class="skills">{% for k, v in skills.items() %}<p><b>{{ k }}:</b><span>{{ v }}</span></p>{% endfor %}</div>
+</section>
 {% endif %}
 
-{% macro entries(title, items) %}{% if items %}
-<h2>{{ title }}</h2>
-{% for e in items %}
-<div class="head">{{ e.title }}<span>{{ e.right }}</span></div>
-{% if e.text %}<p>{{ e.text }}</p>{% endif %}
-{% if e.bullets %}<ul>{% for b in e.bullets %}<li>{{ b }}</li>{% endfor %}</ul>{% endif %}
+{% macro entries(title, items, extra="") %}{% if items or extra %}
+<section class="sec"><h2>{{ title }}</h2>
+{% for e in items or [] %}
+<div class="item">
+  <p class="hd"><strong>{{ e.title }}</strong>{% if e.right %}<span class="meta">| {{ e.right }}</span>{% endif %}</p>
+  {% if e.text %}<p>{{ e.text }}</p>{% endif %}
+  {% if e.bullets %}<ul>{% for b in e.bullets %}<li>{{ b }}</li>{% endfor %}</ul>{% endif %}
+</div>
 {% endfor %}
+{% if extra %}<p>{{ extra }}</p>{% endif %}
+</section>
 {% endif %}{% endmacro %}
-{{ entries(h.projects, projects) }}
 {{ entries(h.experience, experience) }}
-{{ entries(h.education, education) }}
-{% if certificates %}<p>{{ certificates }}</p>{% endif %}
+{{ entries(h.projects, projects) }}
+{{ entries(h.education, education, certificates) }}
 
-{% if languages %}<h2>{{ h.languages }}</h2><p>{{ languages }}</p>{% endif %}
+{% if languages %}<section class="sec"><h2>{{ h.languages }}</h2><p>{{ languages }}</p></section>{% endif %}
 
-<p class="consent">{{ h.consent }}</p>
+<p class="gdpr">{{ h.consent }}</p>
 </html>

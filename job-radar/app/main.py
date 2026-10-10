@@ -292,17 +292,17 @@ def answer_gap(posting_id: int, n: int, a: AnswerIn) -> dict:
 
 
 def pdf(posting_id: int, template: str) -> Response:
-    p, _, _ = current_profile()
     with Session(models.engine) as db:
         t = latest_draft(db, posting_id).data
-        company = db.get(Posting, posting_id).company
+        posting = db.get(Posting, posting_id)
     try:
         base = profile.base_cv(t["lang"])
     except OSError as e:
         raise HTTPException(500, f"no base CV for this language: {e}") from e
     data = drafting.cv_data(t, base)
     if template == "letter.html":
-        data |= {"letter": t["letter"], "company": company, "city": p.city,
+        # No city: the recipient block wants the company's, and postings don't store a location.
+        data |= {"letter": t["letter"], "company": posting.company, "role": posting.title,
                  "date": date.today().strftime("%d.%m.%Y")}  # noqa: DTZ011 - the letter wants the local date
     return Response(render_pdf(data, template), media_type="application/pdf")
 

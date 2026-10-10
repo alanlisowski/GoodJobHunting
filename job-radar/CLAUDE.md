@@ -25,8 +25,8 @@ Full plan: `../job-radar-plan.md`. The decisions below are settled. Don't reopen
   is useless, stop.** The rest depends on it.
 
 ## Traps (these fail silently)
-- **Polish glyphs vanish in PDFs** on CI or in containers. Bundle a `.woff2` in `app/static/fonts`
-  and load it with `@font-face`. Never use system fonts. Test with "żarówka, ściąga, łódź".
+- **Polish glyphs vanish in PDFs** on CI or in containers. Bundle the fonts in `app/static/fonts/pdf`
+  and load them with `@font-face`. Never use system fonts. Test with "żarówka, ściąga, łódź".
 - **Any website can POST to localhost.** The capture endpoint requires the `X-Capture-Token`
   header (compare with `secrets.compare_digest`). No permissive CORS.
 - **The MV3 service worker dies** after 30s idle or on slow fetches. The extension only
